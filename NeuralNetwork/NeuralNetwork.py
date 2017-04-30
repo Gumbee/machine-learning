@@ -2,7 +2,7 @@ import numpy as np
 import scipy.optimize as opt
 
 
-def ravel(weights):
+def ravel(weights: list):
     """
     Takes a list of weight matrices and converts them into one big vector.
     
@@ -15,7 +15,7 @@ def ravel(weights):
     return b
 
 
-def unravel(vector, layers):
+def unravel(vector: np.matrix, layers: list):
     """
     Takes a vector and reconstructs the weight matrices based on the given layer structure.
     
@@ -51,7 +51,7 @@ class NeuralNetwork(object):
 
     # ======== Network Operations ========
 
-    def add_hidden_layer(self, units):
+    def add_hidden_layer(self, units: int):
         """
         Adds a new hidden layer to the network. If there exists an output already, the new hidden layer is inserted
         between the current last hidden layer and the output.
@@ -82,11 +82,11 @@ class NeuralNetwork(object):
             output_layer = self.model['layers'][len(self.model['layers'])-1]
 
             # fix the last weight matrix (dimension could be wrong if we insert a layer before the end)
-            self.model['weights'][len(self.model['weights'])-1] = np.random.rand(output_layer.units, units + (has_bias*1)) * (2*self.EPSILON) - self.EPSILON
+            self.model['weights'][len(self.model['weights'])-1] = np.random.rand(output_layer.units, units + 1) * (2*self.EPSILON) - self.EPSILON
 
         print('Added a new layer with ', units, ' units.')
 
-    def add_output_layer(self, units):
+    def add_output_layer(self, units: int):
         """
         Adds an output layer to the network. If a output layer exists already, that layer will be replaced with the new
         one. Any new hidden layers added to the network after an output layer was added will be inserted between the
@@ -97,18 +97,23 @@ class NeuralNetwork(object):
         """
         # create new layer
         layer = NeuralLayer(units, False)
-        # get previous layer
-        prev_layer = self.model['layers'][len(self.model['layers']) - 1]
-        # create random weights matrix
-        weight = np.random.rand(units, prev_layer.units + (prev_layer.has_bias * 1)) * (2 * self.EPSILON) - self.EPSILON
 
         if not self.has_output:
+            # get previous layer
+            prev_layer = self.model['layers'][len(self.model['layers']) - 1]
+            # create random weights matrix
+            weight = np.random.rand(units, prev_layer.units + (prev_layer.has_bias * 1)) * (2 * self.EPSILON) - self.EPSILON
             self.has_output = True
             self.model['layers'].append(layer)
             self.model['weights'].append(weight)
 
             print('Added a new output layer with ', units, ' units.')
         else:
+            # get last hidden layer
+            prev_layer = self.model['layers'][len(self.model['layers']) - 2]
+            # create random weights matrix
+            weight = np.random.rand(units, prev_layer.units + (prev_layer.has_bias * 1)) * (
+            2 * self.EPSILON) - self.EPSILON
             # override existing values
             self.model['layers'][len(self.model['layers'])-1] = layer
             self.model['weights'][len(self.model['weights'])-1] = weight
@@ -117,7 +122,7 @@ class NeuralNetwork(object):
 
     # ======== Gradient Descent Functions ========
 
-    def cost_wrapper(self, theta, X, y, reg_lambda=1.):
+    def cost_wrapper(self, theta: np.matrix, X: np.matrix, y: np.matrix, reg_lambda=1.):
         """
         Wrapper function for scipy's optimization functions.
         
@@ -138,7 +143,7 @@ class NeuralNetwork(object):
 
         return J, gradients
 
-    def cost_function(self, X, y, reg_lambda=1., model=None, feed_values=None):
+    def cost_function(self, X: np.matrix, y, reg_lambda=1., model: dict = None, feed_values: np.matrix = None):
         """
         Evaluates the cost of the given model (standard network model if no model is passed as parameter) based on a 
         given training set X with output y. Optionally feed forward values can be passed on so that this method doesn't
@@ -154,11 +159,9 @@ class NeuralNetwork(object):
 
         weights, layers = self.parse_model(model)
 
-        m, n, X = self.fix_shape(X)
-        _, _, y = self.fix_shape(y)
+        m, n = X.shape
 
         L = len(layers)
-        W = len(weights)
 
         if feed_values is None:
             output = self.feed_forward(X, model)[L-1]
@@ -187,7 +190,7 @@ class NeuralNetwork(object):
 
         return J
 
-    def gradient(self, X, y, reg_lambda=1., model=None, feed_values=None):
+    def gradient(self, X: np.matrix, y: np.matrix, reg_lambda=1., model: dict = None, feed_values: np.array = None):
         """
         Computes the gradients of the weight matrices of the provided model (standard network model if None is passed).
         
@@ -200,8 +203,7 @@ class NeuralNetwork(object):
         """
         weights, layers = self.parse_model(model)
 
-        m, n, X = self.fix_shape(X)
-        _, _, y = self.fix_shape(y)
+        m, n = X.shape
 
         W = len(weights)
         L = len(layers)
@@ -233,7 +235,7 @@ class NeuralNetwork(object):
 
         return gradients
 
-    def fmin(self, X, y, reg_lambda=1, max_iter=600):
+    def fmin(self, X: np.matrix, y: np.matrix, reg_lambda=1, max_iter=600):
         """
         Trains the network with scipy's opt function with the given training set and the corresponding output and
         applies the trained model to the network.
@@ -249,7 +251,7 @@ class NeuralNetwork(object):
 
         self.model['weights'] = unravel(result[0], self.model['layers'])
 
-    def train(self, X, y, max_iter=5000, alpha=0.1, reg_lambda=1, debug_mode=True):
+    def train(self, X: np.matrix, y: np.matrix, max_iter=5000, alpha=0.1, reg_lambda=1, debug_mode=True):
         """
         Trains the network with gradient descent with the given training set and the corresponding output and
         applies the trained model to the network.
@@ -262,10 +264,6 @@ class NeuralNetwork(object):
         :param debug_mode: (optional) True if debug mode should be turned on (outputs a table with important values)
         :return: None
         """
-        if not type(X).__module__ == np.__name__ or not type(y).__module__ == np.__name__:
-            self.train(np.array(X), np.array(y), max_iter, alpha, reg_lambda, print_progress, debug_mode)
-            return
-
         print('\nTraining Neural Network...')
 
         initial_error = self.cost_function(X, y, reg_lambda)
@@ -282,8 +280,6 @@ class NeuralNetwork(object):
         prev_cst = initial_error
 
         for t in range(0, max_iter):
-            _, _, X = self.fix_shape(X)
-
             # calculate gradients
             gradients = self.gradient(X, y, reg_lambda)
 
@@ -306,7 +302,7 @@ class NeuralNetwork(object):
 
     # ======== Helper Functions ========
 
-    def feed_forward(self, X, model=None):
+    def feed_forward(self, X: np.matrix, model: dict = None):
         """
         Takes an input set X and a model (standard network model if no model is passed), feeds the input forward and
         returns the activation values for every layer.
@@ -315,10 +311,7 @@ class NeuralNetwork(object):
         :param model: (optional) compute the feed forward values for a specific model. Default: Current model
         :return: The activation values for every unit in every layer
         """
-        if not type(X).__module__ == np.__name__:
-            return self.feed_forward(np.array(X))
-
-        m, n, X = self.fix_shape(X)
+        m, n = X.shape
 
         thetas, layers = self.parse_model(model)
 
@@ -331,7 +324,7 @@ class NeuralNetwork(object):
 
         return activations
 
-    def predict(self, X, threshold=0, model=None):
+    def predict(self, X: np.matrix, threshold=0, model: dict = None):
         """
         Takes an input set and predicts the output based on the model (standard network model if nothing else is
         specified). If a threshold is specified then every output unit with a value greater than the threshold
@@ -376,7 +369,7 @@ class NeuralNetwork(object):
             # np.clip is used to prevent overflowing
             return 1 / (1 + np.exp(-np.clip(z, -100, 100)))
         else:
-            return NeuralNetwork.sigmoid()
+            return NeuralNetwork.sigmoid(np.array(z))
 
     @staticmethod
     def sigmoid_gradient(z):
@@ -391,11 +384,11 @@ class NeuralNetwork(object):
             # np.clip is used to prevent overflowing
             return np.multiply(z, (1 - z))
         else:
-            return NeuralNetwork.sigmoid_gradient()
+            return NeuralNetwork.sigmoid_gradient(np.array(z))
 
     # ======== Verification Functions ========
 
-    def check_gradients(self, X, y, gradients, reg_lambda, model=None, epsilon=1e-4, threshold=1e-9):
+    def check_gradients(self, X: np.matrix, y: np.matrix, gradients: list, reg_lambda: float, model: dict = None, epsilon=1e-4, threshold=1e-9):
         """
         Numerically calculate the gradients based on a model (standard network model if no model is specified) and
         compare them to the given gradients. If they don't match, raise an error.
@@ -442,7 +435,7 @@ class NeuralNetwork(object):
     def get_model(self):
         return self.model
 
-    def parse_model(self, model=None):
+    def parse_model(self, model: dict = None):
         """
         Takes a model as argument (if no model is passed to the method then the network's current model will be used)
         and returns that model's weights and layers
@@ -450,6 +443,7 @@ class NeuralNetwork(object):
         :param model: (optional) The model whose weights and layers should be returned. Default: Current model
         :return: The model's weights and layers
         """
+
         if model is None:
             weights = self.model['weights']
             layers = self.model['layers']
@@ -460,23 +454,7 @@ class NeuralNetwork(object):
         return weights, layers
 
     @staticmethod
-    def fix_shape(X):
-        """
-        Takes a scalar, vector or a matrix and returns it as a matrix.
-        
-        :param X: The scalar/vector/matrix
-        :return: The output matrix's dimensions and the input as a matrix
-        """
-        if X.ndim > 1:
-            m, n = np.shape(X)
-        else:
-            X = X.reshape((1, len(X)))
-            m, n = np.shape(X)
-
-        return m, n, X
-
-    @staticmethod
-    def print_table_header(First, Second, Third, Fourth, Fifth):
+    def print_table_header(First: str, Second: str, Third: str, Fourth: str, Fifth: str):
         print('\n\033[91m', '{:>4s}'.format(str(First)), '{:>1s}'.format('|'), '{:>5s}'.format(str(Second)), '{:>1s}'.format('|'),
               '{:>15s}'.format(str(Third)), '{:>1s}'.format('|'), '{:>15s}'.format(str(Fourth)), '{:>1s}'.format('|'),
               '{:>10s}'.format(str(Fifth)), '{:>1s}'.format('|'), '\033[0m')
@@ -484,7 +462,7 @@ class NeuralNetwork(object):
         print('\033[91m', '{:─>63s}'.format(''), '\033[0m')
 
     @staticmethod
-    def print_table_entry(First, Second, Third, Fourth, Fifth):
+    def print_table_entry(First: int, Second: int, Third: float, Fourth: float, Fifth: float):
         print('\033[91m', '{:>4d}'.format(First), '{:1s}'.format('|'), '{:>5d}'.format(Second), '{:>1s}'.format('|'),
               '{:>15.6e}'.format(Third), '{:>1s}'.format('|'), '{:>15.6e}'.format(Fourth), '{:>1s}'.format('|'),
               '{:>10.3f}'.format(Fifth), '{:>1s}'.format('|'), '\033[0m')
@@ -495,7 +473,7 @@ class NeuralLayer(object):
     Class that contains necessary information for a neural layer (e.g how many units).
     """
 
-    def __init__(self, units, has_bias=True):
+    def __init__(self, units: int, has_bias=True):
         self.units = units
         self.has_bias = has_bias
         self.layer = np.zeros(units+(has_bias*1))

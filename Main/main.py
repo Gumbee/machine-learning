@@ -1,4 +1,5 @@
 import numpy as np
+import numpy.matlib
 import Data.DataManager as DataManager
 import time
 
@@ -18,22 +19,19 @@ def get_mean_correct(prediction, y):
 
 def main():
     network = NeuralNetwork(400)
-    network.add_hidden_layer(250)
-    network.add_hidden_layer(250)
-    network.add_hidden_layer(250)
-    network.add_hidden_layer(250)
-    network.add_hidden_layer(250)
-    network.add_hidden_layer(250)
+    network.add_hidden_layer(100)
     network.add_output_layer(10)
 
-    X, y, X_val, y_val, X_test, y_test = DataManager.get_data(0.8, 0.2)
+    X, y, X_val, y_val, X_test, y_test = DataManager.get_handwriting_data(0.8, 0.2)
 
     print('\nStarting timer...')
     t = time.time()
     # network.train(X, y, 850, alpha=1.5, reg_lambda=0.5)
-    network.fmin(X, y, 0.1, 800)
+    network.fmin(X, y, 1, 800)
     t = time.time()-t
     print("\nProcess finished in", '{:6.3f}'.format(t), 'seconds\n')
+
+    print(network.predict(np.matlib.zeros((1, 400))))
 
     get_mean_correct(network.predict(X), y)
     get_mean_correct(network.predict(X_val), y_val)
@@ -47,11 +45,11 @@ def main():
     print("\nVisualizing....\n")
 
     plt.ion()
-    gray = DataManager.read_image()
+    gray = DataManager.read_image('../Data/DataFiles/number2.png')
     DataManager.display_image(gray)
 
-    prediction = network.predict(np.ravel(gray.T))
-    conf = network.feed_forward(np.ravel(gray.T))
+    prediction = network.predict(np.matrix(np.ravel(gray.T)))
+    conf = network.feed_forward(np.matrix(np.ravel(gray.T)))
 
     print("\nPrediciton for zwei: ", (int(np.where(prediction[0] == 1)[0]) + 1) % 10,
           " with confidence:", conf[2][0][(int(np.where(prediction[0] == 1)[0]))])
