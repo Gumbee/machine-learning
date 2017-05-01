@@ -1,6 +1,8 @@
 import numpy as np
 import scipy.optimize as opt
 
+from Training.gradient_descent import GradientDescentOptimizer as GradientDescentOptimizer
+
 
 def ravel(weights: list):
     """
@@ -134,37 +136,34 @@ class NeuralNetwork(object):
         """
 
         weights = unravel(theta, self.model['layers'])
-        model = {'weights': weights, 'layers': self.model['layers']}
 
-        feed_values = self.feed_forward(X, model)
+        feed_values = self.feed_forward(X, weights)
 
-        J = self.cost_function(X, y, reg_lambda, model, feed_values)
-        gradients = ravel(self.gradient(X, y, reg_lambda, model, feed_values))
+        J = self.cost_function(weights, X, y, reg_lambda, feed_values)
+        gradients = ravel(self.gradient(weights, X, y, reg_lambda, feed_values))
 
         return J, gradients
 
-    def cost_function(self, X: np.matrix, y, reg_lambda=1., model: dict = None, feed_values: np.matrix = None):
+    def cost_function(self, weights: list, X: np.matrix, y: np.matrix, reg_lambda=1., feed_values: np.array = None):
         """
-        Evaluates the cost of the given model (standard network model if no model is passed as parameter) based on a 
-        given training set X with output y. Optionally feed forward values can be passed on so that this method doesn't
-        feed forward the training set again.
+        Evaluates the cost of the given weights based on a given training set X with output y. Optionally feed forward
+        values can be passed on so that this method doesn't feed forward the training set again.
         
+        :param weights: the weights which with which we compute the feed forward values
         :param X: input on which the model is/was being trained
         :param y: output corresponding to the input on which the model is/was being trained
         :param reg_lambda: (optional) regularization term for the weights of the network. Default: 1
-        :param model: (optional) evaluate the cost function for a specific model. Default: Current model
         :param feed_values: (optional) calculate the cost for the given feed_forward values
         :return: cost of the model
         """
-
-        weights, layers = self.parse_model(model)
+        layers = self.model['layers']
 
         m, n = X.shape
 
         L = len(layers)
 
         if feed_values is None:
-            output = self.feed_forward(X, model)[L-1]
+            output = self.feed_forward(X)[L-1]
         else:
             output = feed_values[L-1]
 
@@ -190,18 +189,18 @@ class NeuralNetwork(object):
 
         return J
 
-    def gradient(self, X: np.matrix, y: np.matrix, reg_lambda=1., model: dict = None, feed_values: np.array = None):
+    def gradient(self, weights: list, X: np.matrix, y: np.matrix, reg_lambda=1., feed_values: np.array = None):
         """
-        Computes the gradients of the weight matrices of the provided model (standard network model if None is passed).
-        
+        Computes the gradients of the provided weight matrices.
+
+        :param weights: the weights whose gradient values will be calculated
         :param X: The training set with which the network is trained
         :param y: The training set's output
         :param reg_lambda: (optional) Regularization term for the weights. Default: 1
-        :param model: (optional) compute the gradients for a specific model. Default: Current model
         :param feed_values: (optional) calculate the cost for the given feed_forward values
         :return: gradients of the weights
         """
-        weights, layers = self.parse_model(model)
+        layers = self.model['layers']
 
         m, n = X.shape
 
@@ -210,18 +209,18 @@ class NeuralNetwork(object):
 
         # check if the feed forward values are already provided or if we have to calculate them
         if feed_values is None:
-            activations = self.feed_forward(X, model)
+            activations = self.feed_forward(X)
         else:
             activations = feed_values
 
         # allocate space
-        deltas = [None]*L
+        deltas = [None] * L
         gradients = []
 
         # calculate deltas (layer errors)
-        deltas[L-1] = (activations[L-1] - y).T
+        deltas[L - 1] = (activations[L - 1] - y).T
 
-        for i in range(L-2, 0, -1):
+        for i in range(L - 2, 0, -1):
             deltas[i] = np.multiply(weights[i].T.dot(deltas[i + 1])[1:, :], self.sigmoid_gradient(activations[i].T))
 
         for i in range(0, W):
@@ -264,80 +263,51 @@ class NeuralNetwork(object):
         :param debug_mode: (optional) True if debug mode should be turned on (outputs a table with important values)
         :return: None
         """
-        print('\nTraining Neural Network...')
+        weights, layers = self.parse_model()
 
-        initial_error = self.cost_function(X, y, reg_lambda)
-
-        if debug_mode:
-            self.print_table_header('P', 'IT', 'COST', 'CHNG', 'ASCL')
-            self.print_table_entry(0, 0, initial_error, initial_error, 1.00)
-
-        # keeps track of how many entries we've already printed
-        entry_num = 1
-        # factor by which the learning rate alpha is scaled
-        alpha_scale = 1.
-        # keep track of the previous iteration's error so we can calculate the relative change
-        prev_cst = initial_error
-
-        for t in range(0, max_iter):
-            # calculate gradients
-            gradients = self.gradient(X, y, reg_lambda)
-
-            # update weights with gradients
-            for i in range(0, len(self.model['weights'])):
-                self.model['weights'][i] -= alpha*np.log10(t+1) * gradients[i]
-
-            # reevaluate cost function
-            cost = self.cost_function(X, y, reg_lambda)
-            # get relative change of the cost function
-            rel_chng = cost - prev_cst
-            # update previous cost to current cost
-            prev_cst = cost
-
-            if debug_mode and t % 7 == 0:
-                self.print_table_entry(entry_num, t+1, cost, rel_chng, alpha_scale)
-                entry_num += 1
-
-        print('\033[91m', '\n{:<15s}'.format('Initial Error:'), '{:5.6e}'.format(initial_error), '\n{:<15s}'.format('New Error:'), '{:>5.6e}'.format(self.cost_function(X, y, reg_lambda)), '\033[0m')
+        # create an instance of GradientDescentOptimizer and optimize the weights
+        optimizer = GradientDescentOptimizer(learning_rate=alpha, reg_lambda=reg_lambda)
+        optimizer.train(weights, X, y, self.cost_function, self.gradient, max_iter, debug_mode)
 
     # ======== Helper Functions ========
 
-    def feed_forward(self, X: np.matrix, model: dict = None):
+    def feed_forward(self, X: np.matrix, weights: list = None):
         """
-        Takes an input set X and a model (standard network model if no model is passed), feeds the input forward and
+        Takes an input set X and optionally a list of weights, feeds the input forward and
         returns the activation values for every layer.
         
         :param X: The input set which is fed forward
-        :param model: (optional) compute the feed forward values for a specific model. Default: Current model
+        :param weights: (optional) Weights which should be used for the forward propagation. Default: Current model's weights
         :return: The activation values for every unit in every layer
         """
         m, n = X.shape
 
-        thetas, layers = self.parse_model(model)
+        _, layers = self.parse_model()
+
+        if weights is None:
+            weights, layers = self.parse_model()
 
         activations = [X]
 
         for i in range(0, len(layers)-1):
             X = np.hstack((np.ones((m, 1)), X))
-            X = self.sigmoid(np.dot(X, thetas[i].T))
+            X = self.sigmoid(np.dot(X, weights[i].T))
             activations.append(X)
 
         return activations
 
-    def predict(self, X: np.matrix, threshold=0, model: dict = None):
+    def predict(self, X: np.matrix, threshold=0):
         """
-        Takes an input set and predicts the output based on the model (standard network model if nothing else is
-        specified). If a threshold is specified then every output unit with a value greater than the threshold
-        will output 1 and all else 0. If no threshold is specified then the output unit with the greatest value
-        will output 1 and all other units will output 0.
+        Takes an input set and predicts the output based on the current model. If a threshold is specified then every 
+        output unit with a value greater than the threshold will output 1 and all else 0. If no threshold is specified
+        then the output unit with the greatest value will output 1 and all other units will output 0.
         
         :param X: The input set
         :param threshold: (optional) The threshold which determines if a output unit outputs a 1 or 0. If the 
                           threshold is 0 then only the output unit with the greatest value will output 1.
-        :param model: (optional) compute the output for a specific model. Default: Current model
-        :return: 
+        :return: the prediction
         """
-        weights, layers = self.parse_model(model)
+        weights, layers = self.parse_model()
 
         # only get the last layer as it contains our output
         output = self.feed_forward(X)[len(layers) - 1]
@@ -388,22 +358,21 @@ class NeuralNetwork(object):
 
     # ======== Verification Functions ========
 
-    def check_gradients(self, X: np.matrix, y: np.matrix, gradients: list, reg_lambda: float, model: dict = None, epsilon=1e-4, threshold=1e-9):
+    def check_gradients(self, X: np.matrix, y: np.matrix, gradients: list, reg_lambda: float, epsilon=1e-4, threshold=1e-9):
         """
-        Numerically calculate the gradients based on a model (standard network model if no model is specified) and
-        compare them to the given gradients. If they don't match, raise an error.
+        Numerically calculate the gradients based on the current model and compare them to the given gradients. 
+        If they don't match, raise an error.
         
         :param X: The training set on which the model was trained
         :param y: The output corresponding to the training set
         :param gradients: The gradients which are to be checked
         :param reg_lambda: The regularization term used to train the mode
-        :param model: (optional) The model which is to be used. Default: Current model
         :param epsilon: (optional) How accurate the numerical gradient should be (the smaller the better, but beware too small values)
         :param threshold: (optional) If the difference between the numerical gradient and the provided gradient is
                           bigger than the threshold an error will be raised
         :return: None
         """
-        weights, layers = self.parse_model(model)
+        weights, layers = self.parse_model()
 
         for w in range(0, len(weights)):
             m, n = weights[w].shape
@@ -435,38 +404,16 @@ class NeuralNetwork(object):
     def get_model(self):
         return self.model
 
-    def parse_model(self, model: dict = None):
+    def parse_model(self):
         """
-        Takes a model as argument (if no model is passed to the method then the network's current model will be used)
-        and returns that model's weights and layers
+        Returns the current model's weights and layers
         
-        :param model: (optional) The model whose weights and layers should be returned. Default: Current model
         :return: The model's weights and layers
         """
-
-        if model is None:
-            weights = self.model['weights']
-            layers = self.model['layers']
-        else:
-            weights = model['weights']
-            layers = model['layers']
+        weights = self.model['weights']
+        layers = self.model['layers']
 
         return weights, layers
-
-    @staticmethod
-    def print_table_header(First: str, Second: str, Third: str, Fourth: str, Fifth: str):
-        print('\n\033[91m', '{:>4s}'.format(str(First)), '{:>1s}'.format('|'), '{:>5s}'.format(str(Second)), '{:>1s}'.format('|'),
-              '{:>15s}'.format(str(Third)), '{:>1s}'.format('|'), '{:>15s}'.format(str(Fourth)), '{:>1s}'.format('|'),
-              '{:>10s}'.format(str(Fifth)), '{:>1s}'.format('|'), '\033[0m')
-        print()
-        print('\033[91m', '{:─>63s}'.format(''), '\033[0m')
-
-    @staticmethod
-    def print_table_entry(First: int, Second: int, Third: float, Fourth: float, Fifth: float):
-        print('\033[91m', '{:>4d}'.format(First), '{:1s}'.format('|'), '{:>5d}'.format(Second), '{:>1s}'.format('|'),
-              '{:>15.6e}'.format(Third), '{:>1s}'.format('|'), '{:>15.6e}'.format(Fourth), '{:>1s}'.format('|'),
-              '{:>10.3f}'.format(Fifth), '{:>1s}'.format('|'), '\033[0m')
-
 
 class NeuralLayer(object):
     """

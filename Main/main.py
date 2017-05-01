@@ -4,7 +4,7 @@ import Data.DataManager as DataManager
 import time
 
 from matplotlib import pyplot as plt
-from NeuralNetwork.NeuralNetwork import NeuralNetwork as NeuralNetwork
+from NeuralNetwork.neural_network import NeuralNetwork as NeuralNetwork
 
 
 def get_mean_correct(prediction, y):
@@ -26,12 +26,10 @@ def main():
 
     print('\nStarting timer...')
     t = time.time()
-    # network.train(X, y, 850, alpha=1.5, reg_lambda=0.5)
-    network.fmin(X, y, 1, 800)
+    network.train(X, y, 450, alpha=1.5, reg_lambda=0.5)
+    # network.fmin(X, y, 1, 800)
     t = time.time()-t
     print("\nProcess finished in", '{:6.3f}'.format(t), 'seconds\n')
-
-    print(network.predict(np.matlib.zeros((1, 400))))
 
     get_mean_correct(network.predict(X), y)
     get_mean_correct(network.predict(X_val), y_val)
@@ -39,8 +37,6 @@ def main():
     predictions = network.predict(X_val)
 
     confidence = network.feed_forward(X_val)
-
-    network.cost_function(X, y)
 
     print("\nVisualizing....\n")
 
