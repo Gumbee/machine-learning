@@ -1,10 +1,11 @@
-import numpy as np
-import numpy.matlib
-import Data.DataManager as DataManager
 import time
+import numpy as np
+import Data.DataManager as DataManager
+import Training.cost_model as cost_model
 
 from matplotlib import pyplot as plt
 from NeuralNetwork.neural_network import NeuralNetwork as NeuralNetwork
+from Training.gradient_descent import GradientDescentOptimizer as GradientDescentOptimizer
 
 
 def get_mean_correct(prediction, y):
@@ -55,4 +56,19 @@ def main():
     DataManager.visualize(X_val, y_val, predictions, confidence)
     DataManager.visualize(network.model['weights'][0][:, 1:])
 
-main()
+
+def linear_regression():
+    init_theta = np.matrix([0, 0, 0]).astype(np.float64)
+
+    X, y = DataManager.generate_data(100, 500, degree=3)
+
+    optimizer = GradientDescentOptimizer(learning_rate=1e-13, reg_lambda=2e9)
+    optimizer.train(init_theta, X, y, cost_model.sum_of_squares, cost_model.sum_of_squares_gradient, 10000)
+
+    print("New Model:", init_theta)
+
+    # print("Predictions:\n", X.dot(init_theta.T))
+
+    DataManager.scatter(X, y, init_theta)
+
+linear_regression()

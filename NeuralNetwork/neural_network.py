@@ -149,7 +149,7 @@ class NeuralNetwork(object):
         Evaluates the cost of the given weights based on a given training set X with output y. Optionally feed forward
         values can be passed on so that this method doesn't feed forward the training set again.
         
-        :param weights: the weights which with which we compute the feed forward values
+        :param weights: the weights with which we compute the feed forward values
         :param X: input on which the model is/was being trained
         :param y: output corresponding to the input on which the model is/was being trained
         :param reg_lambda: (optional) regularization term for the weights of the network. Default: 1
@@ -356,49 +356,6 @@ class NeuralNetwork(object):
         else:
             return NeuralNetwork.sigmoid_gradient(np.array(z))
 
-    # ======== Verification Functions ========
-
-    def check_gradients(self, X: np.matrix, y: np.matrix, gradients: list, reg_lambda: float, epsilon=1e-4, threshold=1e-9):
-        """
-        Numerically calculate the gradients based on the current model and compare them to the given gradients. 
-        If they don't match, raise an error.
-        
-        :param X: The training set on which the model was trained
-        :param y: The output corresponding to the training set
-        :param gradients: The gradients which are to be checked
-        :param reg_lambda: The regularization term used to train the mode
-        :param epsilon: (optional) How accurate the numerical gradient should be (the smaller the better, but beware too small values)
-        :param threshold: (optional) If the difference between the numerical gradient and the provided gradient is
-                          bigger than the threshold an error will be raised
-        :return: None
-        """
-        weights, layers = self.parse_model()
-
-        for w in range(0, len(weights)):
-            m, n = weights[w].shape
-            # loop through all gradients
-            for i in range(0, m):
-                for j in range(0, n):
-                    # store the initial weight
-                    initial_weight = weights[w][i, j]
-                    # add a small value to the initial weight
-                    weights[w][i, j] = initial_weight + epsilon
-                    # calculate the new cost function with the small value added to the weight element
-                    plus = self.cost_function(X, y, reg_lambda, {'weights': weights, 'layers': layers})
-                    # subtract a small value from the inital weight
-                    weights[w][i, j] = initial_weight - epsilon
-                    # calculate the new cost function with the small value subtracted to the weight element and save
-                    # the difference between the cost where we added a value and the cost where we subtracted it
-                    num_grad = (plus - self.cost_function(X, y, reg_lambda, {'weights': weights, 'layers': layers}))/(2*epsilon)
-                    # restore the weight element's initial weight
-                    weights[w][i, j] = initial_weight
-                    if gradients[w][i, j]-num_grad > threshold:
-                        print('Numerical:', num_grad)
-                        print('Algorithm:', gradients[w][i, j])
-                        # raise an error if the difference between the numerical gradient and the provided gradient
-                        # is exceeding the threshold
-                        raise Exception('Gradients do not match!')
-
     # ======== Util Functions ========
 
     def get_model(self):
@@ -414,6 +371,7 @@ class NeuralNetwork(object):
         layers = self.model['layers']
 
         return weights, layers
+
 
 class NeuralLayer(object):
     """

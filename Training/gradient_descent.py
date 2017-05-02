@@ -21,7 +21,7 @@ class GradientDescentOptimizer(object):
         :param func_args: (optional) Additional parameters that will be passed on to cost_func and gradient_func
         :return: None
         """
-        print('\nTraining Neural Network...')
+        print('\nTraining Parameters...')
 
         alpha = self.learning_rate
         reg_lambda = self.reg_lambda
@@ -38,6 +38,8 @@ class GradientDescentOptimizer(object):
         alpha_scale = 1.
         # keep track of the previous iteration's error so we can calculate the relative change
         prev_cst = initial_error
+        # keep track of how often we didn't change the cost by applying a gradient descent step
+        num_converged = 0
 
         for t in range(0, max_iter):
             # calculate gradients
@@ -62,8 +64,89 @@ class GradientDescentOptimizer(object):
                 self.print_table_entry(entry_num, t + 1, cost, rel_chng, alpha_scale)
                 entry_num += 1
 
+            if rel_chng - (-1e-30) > 0:
+                if num_converged > 50:
+                    print('\n\033[91mGradient Descent converged. Training ended.\033[0m')
+                    return
+                else:
+                    num_converged += 1
+            else:
+                num_converged = 0
+
         print('\033[91m', '\n{:<15s}'.format('Initial Error:'), '{:5.6e}'.format(initial_error),
               '\n{:<15s}'.format('New Error:'), '{:>5.6e}'.format(cost_func(init_theta, X, y, reg_lambda, **func_args)), '\033[0m')
+
+    # ================= Verification Functions =================
+
+    @staticmethod
+    def check_gradients(theta: np.matrix, X: np.matrix, y: np.matrix, cost_func: callable, gradients, reg_lambda: float, epsilon=1e-4, threshold=1e-6):
+        """
+        Numerically calculate the gradients based on the current model and compare them to the given gradients. 
+        If they don't match, raise an error.
+
+        :param theta: Parameter values
+        :param X: The training set on which the model was trained
+        :param y: The output corresponding to the training set
+        :param cost_func: The cost function with which the costs and gradients were calculated
+        :param gradients: The gradients which are to be checked
+        :param reg_lambda: The regularization term used to train the model
+        :param epsilon: (optional) How accurate the numerical gradient should be (the smaller the better, but beware too small values)
+        :param threshold: (optional) If the difference between the numerical gradient and the provided gradient is
+                          bigger than the threshold an error will be raised
+        :return: None
+        """
+        if isinstance(gradients, np.matrix):
+            n = len(theta)
+            for j in range(0, n):
+                # store the initial weight
+                initial_weight = theta[0, j]
+                # add a small value to the initial weight
+                theta[0, j] = initial_weight + epsilon
+                # calculate the new cost function with the small value added to the weight element
+                plus = cost_func(theta, X, y, reg_lambda)
+                # subtract a small value from the inital weight
+                theta[0, j] = initial_weight - epsilon
+                # calculate the new cost function with the small value subtracted to the weight element and save
+                # the difference between the cost where we added a value and the cost where we subtracted it
+                num_grad = (plus - cost_func(theta, X, y, reg_lambda)) / (2 * epsilon)
+                # restore the weight element's initial weight
+                theta[0, j] = initial_weight
+                if gradients[0, j] - num_grad > threshold:
+                    print('Numerical:', num_grad)
+                    print('Algorithm:', gradients[0, j])
+                    # raise an error if the difference between the numerical gradient and the provided gradient
+                    # is exceeding the threshold
+                    raise Exception('Gradients do not match!')
+
+        elif isinstance(gradients, list) and isinstance(theta, list):
+            for w in range(0, len(gradients)):
+                m, n = gradients[w].shape
+                # loop through all gradients
+                for i in range(0, m):
+                    for j in range(0, n):
+                        # store the initial weight
+                        initial_weight = theta[w][i, j]
+                        # add a small value to the initial weight
+                        theta[w][i, j] = initial_weight + epsilon
+                        # calculate the new cost function with the small value added to the weight element
+                        plus = cost_func(theta, X, y, reg_lambda)
+                        # subtract a small value from the inital weight
+                        theta[w][i, j] = initial_weight - epsilon
+                        # calculate the new cost function with the small value subtracted to the weight element and save
+                        # the difference between the cost where we added a value and the cost where we subtracted it
+                        num_grad = (plus - cost_func(theta, X, y, reg_lambda)) / (2 * epsilon)
+                        # restore the weight element's initial weight
+                        theta[w][i, j] = initial_weight
+                        if gradients[w][i, j] - num_grad > threshold:
+                            print('Numerical:', num_grad)
+                            print('Algorithm:', gradients[w][i, j])
+                            # raise an error if the difference between the numerical gradient and the provided gradient
+                            # is exceeding the threshold
+                            raise Exception('Gradients do not match!')
+        else:
+            raise Exception('Unknown type of gradients!')
+
+    # ================= Util Functions =================
 
     @staticmethod
     def print_table_header(First: str, Second: str, Third: str, Fourth: str, Fifth: str):

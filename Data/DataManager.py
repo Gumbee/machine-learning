@@ -1,7 +1,8 @@
+import random
 import numpy as np
+import matplotlib.image as mpimg
 
 from matplotlib import pyplot as plt
-import matplotlib.image as mpimg
 
 
 def get_handwriting_data(training_ratio=0.6, validation_ratio=0.2):
@@ -114,3 +115,36 @@ def visualize(X: np.matrix, y: np.matrix = None, predictions=None, feed_values=N
         i += 1
 
     plt.ioff()
+
+
+def scatter(X: np.matrix, y: np.matrix, theta=None):
+    plt.scatter(np.ravel(X[0:, 0].T), np.ravel(y.T))
+    if theta is not None:
+        plt.plot(np.ravel(X[0:, 0].T), X.dot(theta.T), color='red')
+    plt.show()
+
+
+def generate_data(m: int = 100, variance: float = 2, degree: int = 2):
+    x = np.zeros((m, degree))
+
+    thetas = np.matrix(np.random.normal(np.zeros(degree), 0.1))
+
+    x = add_polynomial_features(x, degree)
+
+    y = np.random.normal(x.dot(thetas.T), variance)
+
+    return x, y
+
+
+def add_polynomial_features(X: np.matrix, degree: int = 2):
+    m, n = X.shape
+
+    X_out = np.ones((m, degree))
+
+    for i in range(0, m):
+        for j in range(1, degree+1):
+            X_out[i, j-1] = (i-m/2)**j
+
+    return X_out
+
+
