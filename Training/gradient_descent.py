@@ -7,7 +7,7 @@ class GradientDescentOptimizer(object):
         self.learning_rate = learning_rate
         self.reg_lambda = reg_lambda
 
-    def train(self, init_theta, X: np.matrix, y: np.matrix, cost_func: callable, gradient_func: callable, max_iter, debug_mode=True, **func_args):
+    def train(self, init_theta, X: np.matrix, y: np.matrix, cost_func: callable, gradient_func: callable, max_iter, debug_mode=True, callback=None, **func_args):
         """
         Trains the parameters in init_theta to minimize the provided cost function.
         
@@ -73,13 +73,16 @@ class GradientDescentOptimizer(object):
             else:
                 num_converged = 0
 
+            if callback is not None:
+                callback(init_theta, X, t)
+
         print('\033[91m', '\n{:<15s}'.format('Initial Error:'), '{:5.6e}'.format(initial_error),
               '\n{:<15s}'.format('New Error:'), '{:>5.6e}'.format(cost_func(init_theta, X, y, reg_lambda, **func_args)), '\033[0m')
 
     # ================= Verification Functions =================
 
     @staticmethod
-    def check_gradients(theta: np.matrix, X: np.matrix, y: np.matrix, cost_func: callable, gradients, reg_lambda: float, epsilon=1e-4, threshold=1e-6):
+    def check_gradients(theta: np.matrix, X: np.matrix, y: np.matrix, cost_func: callable, gradients, reg_lambda: float, epsilon=1e-4, threshold=1e-6, **func_args):
         """
         Numerically calculate the gradients based on the current model and compare them to the given gradients. 
         If they don't match, raise an error.
@@ -103,12 +106,12 @@ class GradientDescentOptimizer(object):
                 # add a small value to the initial weight
                 theta[0, j] = initial_weight + epsilon
                 # calculate the new cost function with the small value added to the weight element
-                plus = cost_func(theta, X, y, reg_lambda)
+                plus = cost_func(theta, X, y, reg_lambda, **func_args)
                 # subtract a small value from the inital weight
                 theta[0, j] = initial_weight - epsilon
                 # calculate the new cost function with the small value subtracted to the weight element and save
                 # the difference between the cost where we added a value and the cost where we subtracted it
-                num_grad = (plus - cost_func(theta, X, y, reg_lambda)) / (2 * epsilon)
+                num_grad = (plus - cost_func(theta, X, y, reg_lambda, **func_args)) / (2 * epsilon)
                 # restore the weight element's initial weight
                 theta[0, j] = initial_weight
                 if gradients[0, j] - num_grad > threshold:
@@ -129,12 +132,12 @@ class GradientDescentOptimizer(object):
                         # add a small value to the initial weight
                         theta[w][i, j] = initial_weight + epsilon
                         # calculate the new cost function with the small value added to the weight element
-                        plus = cost_func(theta, X, y, reg_lambda)
+                        plus = cost_func(theta, X, y, reg_lambda, **func_args)
                         # subtract a small value from the inital weight
                         theta[w][i, j] = initial_weight - epsilon
                         # calculate the new cost function with the small value subtracted to the weight element and save
                         # the difference between the cost where we added a value and the cost where we subtracted it
-                        num_grad = (plus - cost_func(theta, X, y, reg_lambda)) / (2 * epsilon)
+                        num_grad = (plus - cost_func(theta, X, y, reg_lambda, **func_args)) / (2 * epsilon)
                         # restore the weight element's initial weight
                         theta[w][i, j] = initial_weight
                         if gradients[w][i, j] - num_grad > threshold:

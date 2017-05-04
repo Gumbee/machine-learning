@@ -14,6 +14,7 @@ def sum_of_squares(thetas: np.matrix, X: np.matrix, y: np.matrix, reg_lambda=1.)
     m, n = X.shape
 
     hypothesis = X.dot(thetas.T)
+    # theta_penalty is used to calculate the regularization penalty (excluding the first parameter)
     theta_penalty = np.zeros_like(thetas)
     theta_penalty[:, 1:] = thetas[:, 1:]
 
@@ -35,6 +36,7 @@ def sum_of_squares_gradient(thetas: np.matrix, X: np.matrix, y: np.matrix, reg_l
     m, n = X.shape
 
     hypothesis = X.dot(thetas.T)
+    # theta_penalty is used to calculate the regularization penalty (excluding the first parameter)
     theta_penalty = np.zeros_like(thetas)
     theta_penalty[:, 1:] = thetas[:, 1:]
 

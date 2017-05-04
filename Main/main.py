@@ -1,9 +1,9 @@
 import time
 import numpy as np
 import Data.DataManager as DataManager
+import Utils.Visualizer as Visualizer
 import Training.cost_model as cost_model
 
-from matplotlib import pyplot as plt
 from NeuralNetwork.neural_network import NeuralNetwork as NeuralNetwork
 from Training.gradient_descent import GradientDescentOptimizer as GradientDescentOptimizer
 
@@ -27,8 +27,8 @@ def main():
 
     print('\nStarting timer...')
     t = time.time()
-    network.train(X, y, 450, alpha=1.5, reg_lambda=0.5)
-    # network.fmin(X, y, 1, 800)
+    # network.train(X, y, 850, alpha=1.5, reg_lambda=0.5)
+    network.fmin(X, y, reg_lambda=0.5)
     t = time.time()-t
     print("\nProcess finished in", '{:6.3f}'.format(t), 'seconds\n')
 
@@ -41,34 +41,23 @@ def main():
 
     print("\nVisualizing....\n")
 
-    plt.ion()
-    gray = DataManager.read_image('../Data/DataFiles/number2.png')
-    DataManager.display_image(gray)
-
-    prediction = network.predict(np.matrix(np.ravel(gray.T)))
-    conf = network.feed_forward(np.matrix(np.ravel(gray.T)))
-
-    print("\nPrediciton for zwei: ", (int(np.where(prediction[0] == 1)[0]) + 1) % 10,
-          " with confidence:", conf[2][0][(int(np.where(prediction[0] == 1)[0]))])
-
-    input_var = input('\rPress Enter to continue or \'q\' to exit....')
-
-    DataManager.visualize(X_val, y_val, predictions, confidence)
-    DataManager.visualize(network.model['weights'][0][:, 1:])
+    Visualizer.visualize_image(X_val, y_val, predictions, confidence)
+    Visualizer.visualize_image(network.model['weights'][0][:, 1:])
 
 
 def linear_regression():
     init_theta = np.matrix([0, 0, 0]).astype(np.float64)
 
-    X, y = DataManager.generate_data(100, 500, degree=3)
+    X, y = DataManager.generate_data(100, noise=500, degree=3)
 
-    optimizer = GradientDescentOptimizer(learning_rate=1e-13, reg_lambda=2e9)
-    optimizer.train(init_theta, X, y, cost_model.sum_of_squares, cost_model.sum_of_squares_gradient, 10000)
+    optimizer = GradientDescentOptimizer(learning_rate=1e-12, reg_lambda=0)
 
-    print("New Model:", init_theta)
+    Visualizer.plt.ion()
+    Visualizer.plt.scatter(np.ravel(X[0:, 0].T), np.ravel(y.T))
+    Visualizer.plt.show()
 
-    # print("Predictions:\n", X.dot(init_theta.T))
+    optimizer.train(init_theta, X, y, cost_model.sum_of_squares, cost_model.sum_of_squares_gradient, 1000, callback=Visualizer.visualize_training_step)
 
-    DataManager.scatter(X, y, init_theta)
+    # Visualizer.visualize_final_result(X, y, init_theta)
 
-linear_regression()
+main()
