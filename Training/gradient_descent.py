@@ -1,30 +1,56 @@
 import numpy as np
 
 
+class GradientDescentParameters(object):
+    """
+    Contains all necessary settings for the gradient descent algorithm.
+    
+    learning_rate:      Gradient descent's factor by which the gradient is applied
+    reg_lambda:         Regularization factor
+    cost_func:          The cost function that determines how good the parameters are performing
+    gradient_func:      The function that returns the parameters gradient values
+    max_iter:           Maximum number of iterations before the function should end the training
+    debug_mode:         (optional) True if debug mode should be turned on (outputs a table with important values). Default: True
+    func_args:          (optional) Additional parameters that will be passed on to cost_func and gradient_func
+    callback:           (optional) Function that is called after every iteration with the training set, the current parameter values
+                        and the current iteration number as parameters. Additional parameters can be specified via callback_args
+    callback_args:      (optional) Additional parameters that should be passed to the callback function
+    """
+    learning_rate = 0.1
+    reg_lambda = 1.
+    cost_func: callable = None
+    gradient_func: callable = None
+    func_args: dict = {}
+    max_iter: int = 600
+    debug_mode: bool = True
+    callback: callable = None
+    callback_args: dict = {}
+
+
 class GradientDescentOptimizer(object):
 
-    def __init__(self, learning_rate=0.1, reg_lambda=1.):
-        self.learning_rate = learning_rate
-        self.reg_lambda = reg_lambda
-
-    def train(self, init_theta, X: np.matrix, y: np.matrix, cost_func: callable, gradient_func: callable, max_iter, debug_mode=True, callback=None, **func_args):
+    def train(self, init_theta, X: np.matrix, y: np.matrix, gd_parameters: GradientDescentParameters):
         """
         Trains the parameters in init_theta to minimize the provided cost function.
         
-        :param init_theta: The initial parameter values (if it's a list, gradient descent is applied element-wise)
-        :param X: The training set
-        :param y: The training set's corresponding output
-        :param cost_func: The cost function that determines how good the parameters are performing
-        :param gradient_func: The function that returns the parameters gradient values
-        :param max_iter: Maximal number of iterations before the function should end the training
-        :param debug_mode: (optional) True if debug mode should be turned on (outputs a table with important values)
-        :param func_args: (optional) Additional parameters that will be passed on to cost_func and gradient_func
-        :return: None
+        :param init_theta:      The initial parameter values (if it's a list, gradient descent is applied element-wise)
+        :param X:               The training set
+        :param y:               The training set's corresponding output
+        :param gd_parameters:   The parameters with which gradient descent should be run
+        :return:                None
         """
         print('\nTraining Parameters...')
 
-        alpha = self.learning_rate
-        reg_lambda = self.reg_lambda
+        # retrieve parameter values
+        alpha = gd_parameters.learning_rate
+        reg_lambda = gd_parameters.reg_lambda
+        cost_func = gd_parameters.cost_func
+        gradient_func = gd_parameters.gradient_func
+        func_args = gd_parameters.func_args
+        max_iter = gd_parameters.max_iter
+        debug_mode = gd_parameters.debug_mode
+        callback = gd_parameters.callback
+        callback_args = gd_parameters.callback_args
 
         initial_error = cost_func(init_theta, X, y, reg_lambda, **func_args)
 
@@ -74,7 +100,7 @@ class GradientDescentOptimizer(object):
                 num_converged = 0
 
             if callback is not None:
-                callback(init_theta, X, t)
+                callback(init_theta, X, t, **callback_args)
 
         print('\033[91m', '\n{:<15s}'.format('Initial Error:'), '{:5.6e}'.format(initial_error),
               '\n{:<15s}'.format('New Error:'), '{:>5.6e}'.format(cost_func(init_theta, X, y, reg_lambda, **func_args)), '\033[0m')
@@ -82,22 +108,26 @@ class GradientDescentOptimizer(object):
     # ================= Verification Functions =================
 
     @staticmethod
-    def check_gradients(theta: np.matrix, X: np.matrix, y: np.matrix, cost_func: callable, gradients, reg_lambda: float, epsilon=1e-4, threshold=1e-6, **func_args):
+    def check_gradients(theta: np.matrix, X: np.matrix, y: np.matrix, gradients, gd_parameters: GradientDescentParameters,  epsilon=1e-4, threshold=1e-6):
         """
         Numerically calculate the gradients based on the current model and compare them to the given gradients. 
         If they don't match, raise an error.
 
-        :param theta: Parameter values
-        :param X: The training set on which the model was trained
-        :param y: The output corresponding to the training set
-        :param cost_func: The cost function with which the costs and gradients were calculated
-        :param gradients: The gradients which are to be checked
-        :param reg_lambda: The regularization term used to train the model
-        :param epsilon: (optional) How accurate the numerical gradient should be (the smaller the better, but beware too small values)
-        :param threshold: (optional) If the difference between the numerical gradient and the provided gradient is
-                          bigger than the threshold an error will be raised
-        :return: None
+        :param theta:           Parameter values
+        :param X:               The training set on which the model was trained
+        :param y:               The output corresponding to the training set
+        :param gradients:       The gradients which are to be checked
+        :param gd_parameters:   The gradient descent's settings
+        :param epsilon:         (optional) How accurate the numerical gradient should be (the smaller the better, but beware too small values)
+        :param threshold:       (optional) If the difference between the numerical gradient and the provided gradient is
+                                bigger than the threshold an error will be raised
+        :return:                None
         """
+
+        cost_func = gd_parameters.cost_func
+        func_args = gd_parameters.func_args
+        reg_lambda = gd_parameters.reg_lambda
+
         if isinstance(gradients, np.matrix):
             n = len(theta)
             for j in range(0, n):
@@ -107,7 +137,7 @@ class GradientDescentOptimizer(object):
                 theta[0, j] = initial_weight + epsilon
                 # calculate the new cost function with the small value added to the weight element
                 plus = cost_func(theta, X, y, reg_lambda, **func_args)
-                # subtract a small value from the inital weight
+                # subtract a small value from the initial weight
                 theta[0, j] = initial_weight - epsilon
                 # calculate the new cost function with the small value subtracted to the weight element and save
                 # the difference between the cost where we added a value and the cost where we subtracted it
@@ -133,7 +163,7 @@ class GradientDescentOptimizer(object):
                         theta[w][i, j] = initial_weight + epsilon
                         # calculate the new cost function with the small value added to the weight element
                         plus = cost_func(theta, X, y, reg_lambda, **func_args)
-                        # subtract a small value from the inital weight
+                        # subtract a small value from the initial weight
                         theta[w][i, j] = initial_weight - epsilon
                         # calculate the new cost function with the small value subtracted to the weight element and save
                         # the difference between the cost where we added a value and the cost where we subtracted it

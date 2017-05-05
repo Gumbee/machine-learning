@@ -5,11 +5,11 @@ def sum_of_squares(thetas: np.matrix, X: np.matrix, y: np.matrix, reg_lambda=1.)
     """
     Evaluates the sum of squares cost for a given vector of parameters theta and the training set X with output y.
     
-    :param thetas: The parameter vector used to calculate the hypothesis (Shape: 1xN)
-    :param X: The training set (Shape: MxN)
-    :param y: The training set's output (Shape: Mx1)
-    :param reg_lambda: Regularization parameter
-    :return: sum of squares cost for the parameter vector theta on the training set X with output y.
+    :param thetas:      The parameter vector used to calculate the hypothesis (Shape: 1xN)
+    :param X:           The training set (Shape: MxN)
+    :param y:           The training set's output (Shape: Mx1)
+    :param reg_lambda:  Regularization parameter
+    :return:            sum of squares cost for the parameter vector theta on the training set X with output y.
     """
     m, n = X.shape
 
@@ -27,11 +27,11 @@ def sum_of_squares_gradient(thetas: np.matrix, X: np.matrix, y: np.matrix, reg_l
     """
     Returns the sum of squares gradients of the parameter vector theta.
     
-    :param thetas: The parameter vector used to calculate the hypothesis (Shape: 1xN)
-    :param X: The training set (Shape: MxN)
-    :param y: The training set's output (Shape: Mx1)
-    :param reg_lambda: Regularization parameter
-    :return: The gradients of the parameters
+    :param thetas:      The parameter vector used to calculate the hypothesis (Shape: 1xN)
+    :param X:           The training set (Shape: MxN)
+    :param y:           The training set's output (Shape: Mx1)
+    :param reg_lambda:  Regularization parameter
+    :return:            The gradients of the parameters
     """
     m, n = X.shape
 

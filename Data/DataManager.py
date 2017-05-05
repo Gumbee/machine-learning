@@ -6,11 +6,11 @@ def get_handwriting_data(training_ratio=0.6, validation_ratio=0.2):
     """
     Reads the handwriting data, splits it up into training set, cross validation set and test set and returns the result.
     
-    :param training_ratio: The fraction of the data that should be used as the training set
-    :param validation_ratio: The fraction of the data that should be used as the cross validation set (the remaining
-                             fraction is used as test set).
-    :return: X -> Training set, y -> Training set's output, X_val -> Validation set, y_val -> Validation set's output,
-             X_test -> Test set, y_test -> Test set's output
+    :param training_ratio:      The fraction of the data that should be used as the training set
+    :param validation_ratio:    The fraction of the data that should be used as the cross validation set (the remaining
+                                fraction is used as test set).
+    :return:                    X -> Training set, y -> Training set's output, X_val -> Validation set, y_val -> Validation set's output,
+                                X_test -> Test set, y_test -> Test set's output
     """
     input_data = []
     output_data = []
@@ -52,8 +52,8 @@ def rgb2gray(img_matrix: np.matrix):
     """
     Converts a matrix of rgb values to grayscale values.
     
-    :param img_matrix: The image matrix that is to be converted to grayscale values
-    :return: The matrix as grayscale values
+    :param img_matrix:  The image matrix that is to be converted to grayscale values
+    :return:            The matrix as grayscale values
     """
     return np.dot(img_matrix[..., :3], [0.299, 0.587, 0.114])
 
@@ -71,6 +71,7 @@ def generate_data(m: int = 100, noise: float = 2, degree: int = 2):
     x = np.zeros((m, degree))
 
     thetas = np.matrix(np.random.normal(np.zeros(degree), 0.1))
+    thetas[0, 2] = 0.001
 
     x = add_polynomial_features(x, degree)
 
@@ -79,7 +80,7 @@ def generate_data(m: int = 100, noise: float = 2, degree: int = 2):
     return x, y
 
 
-def add_polynomial_features(X: np.matrix, degree: int = 2):
+def add_polynomial_features(X: np.array, degree: int = 2):
     m, n = X.shape
 
     X_out = np.ones((m, degree))
