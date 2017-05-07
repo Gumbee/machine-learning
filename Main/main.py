@@ -1,7 +1,7 @@
 import time
 import numpy as np
-import Data.DataManager as DataManager
-import Utils.Visualizer as Visualizer
+import Data.data_manager as DataManager
+import Utils.visualizer as Visualizer
 import Training.cost_model as cost_model
 
 from NeuralNetwork.neural_network import NeuralNetwork as NeuralNetwork
@@ -21,7 +21,7 @@ def get_mean_correct(prediction, y):
 
 def main():
     network = NeuralNetwork(400)
-    network.add_hidden_layer(400)
+    network.add_hidden_layer(100)
     network.add_output_layer(10)
 
     X, y, X_val, y_val, X_test, y_test = DataManager.get_handwriting_data(0.8, 0.2)
@@ -47,9 +47,9 @@ def main():
 
 
 def linear_regression():
-    init_theta = np.matrix([0, 0, 0]).astype(np.float64)
+    init_theta = np.matrix([0, 0]).astype(np.float64)
 
-    X, y = DataManager.generate_data(100, noise=20, degree=3)
+    X, y = DataManager.generate_data(100, noise=10, degree=2)
 
     Visualizer.plt.ion()
     Visualizer.plt.scatter(np.ravel(X[0:, 0].T), np.ravel(y.T), s=12)
@@ -59,17 +59,18 @@ def linear_regression():
 
     # set gradient descent parameters
     gd_parameters = GradientDescentParameters()
-    gd_parameters.learning_rate = 3e-11
+    gd_parameters.learning_rate = 3e-7
     gd_parameters.reg_lambda = 0
     gd_parameters.cost_func = cost_model.sum_of_squares
     gd_parameters.gradient_func = cost_model.sum_of_squares_gradient
-    gd_parameters.max_iter = 30000
+    gd_parameters.max_iter = 20
     gd_parameters.callback = Visualizer.visualize_training_step
-    gd_parameters.callback_args = {'step': 1000}
+    gd_parameters.callback_args = {'step': 1}
 
     # train
     optimizer.train(init_theta, X, y, gd_parameters)
 
     # Visualizer.visualize_final_result(X, y, init_theta)
+
 
 linear_regression()

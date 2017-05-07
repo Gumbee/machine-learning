@@ -21,7 +21,7 @@ class GradientDescentParameters(object):
     cost_func: callable = None
     gradient_func: callable = None
     func_args: dict = {}
-    max_iter: int = 600
+    max_iter: int = 6
     debug_mode: bool = True
     callback: callable = None
     callback_args: dict = {}
@@ -52,7 +52,7 @@ class GradientDescentOptimizer(object):
         callback = gd_parameters.callback
         callback_args = gd_parameters.callback_args
 
-        initial_error = cost_func(init_theta, X, y, reg_lambda, **func_args)
+        initial_error = gd_parameters.cost_func(init_theta, X, y, reg_lambda)
 
         if debug_mode:
             self.print_table_header('P', 'IT', 'COST', 'CHNG', 'ASCL')

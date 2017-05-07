@@ -68,21 +68,32 @@ def read_image(path: str):
 
 
 def generate_data(m: int = 100, noise: float = 2, degree: int = 2):
-    x = np.zeros((m, degree))
-
+    """
+    Generates data consisting of a function f(x) = ax+bx^2+cx^3... of the desired polynomial degree. If specified, noise
+    will be added to the data.
+    
+    :param m:       The number of examples (size of the data)
+    :param noise:   Number specifying how much noise should be added (the higher the number, the more noise)
+    :param degree:  The degree of the function that generates the data
+    :return:        The data's input and output set
+    """
     thetas = np.matrix(np.random.normal(np.zeros(degree), 0.1))
-    thetas[0, 2] = 0.001
 
-    x = add_polynomial_features(x, degree)
+    x = create_polynomial_features(m, degree)
 
     y = np.random.normal(x.dot(thetas.T), noise)
 
     return x, y
 
 
-def add_polynomial_features(X: np.array, degree: int = 2):
-    m, n = X.shape
-
+def create_polynomial_features(m: int, degree: int = 2):
+    """
+    Creates a data input set with polynomial features up to a specified degree.
+    
+    :param m:       The number of examples (size of the data)
+    :param degree:  The max degree that should be generated
+    :return:        The data with polynomial features
+    """
     X_out = np.ones((m, degree))
 
     for i in range(0, m):
