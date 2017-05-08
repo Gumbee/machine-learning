@@ -7,6 +7,7 @@ import Training.cost_model as cost_model
 from NeuralNetwork.neural_network import NeuralNetwork as NeuralNetwork
 from Training.gradient_descent import GradientDescentOptimizer as GradientDescentOptimizer
 from Training.gradient_descent import GradientDescentParameters as GradientDescentParameters
+from Utils.anomaly_detector import AnomalyDetector as AnomalyDetector
 
 
 def get_mean_correct(prediction, y):
@@ -73,4 +74,31 @@ def linear_regression():
     # Visualizer.visualize_final_result(X, y, init_theta)
 
 
-linear_regression()
+def anomaly():
+
+    detector = AnomalyDetector(multivariate=True)
+
+    noise = 20000000000
+
+    X, y = DataManager.generate_data(400, noise=noise, degree=6)
+    thetas = np.matrix(np.ones_like(X[0, :])*0.01)
+    thetas[0, 2] = 100000
+    thetas[0, 4] = - 2
+
+    y = np.random.normal(X.dot(thetas.T), noise)
+
+    x = np.hstack((X, y))
+
+    detector.train(x)
+
+    choice = 30
+
+    idx = np.random.choice(len(y), choice)
+
+    y[idx] = np.random.normal(y[idx], 4*noise)
+
+    x = np.hstack((X, y))
+
+    detector.visualize_anomalies(x, scatter=False)
+
+anomaly()
