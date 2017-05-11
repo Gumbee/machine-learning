@@ -22,7 +22,7 @@ def standardize(X: np.matrix):
 
 
 def scale_features(X: np.matrix, min: float = 0., max: float = 1.):
-    """
+    """ 
     Performs feature scaling on the input matrix X.
     
     :param X: Input matrix

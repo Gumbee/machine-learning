@@ -2,6 +2,7 @@ import numpy as np
 import scipy.optimize as opt
 
 from Training.gradient_descent import GradientDescentOptimizer as GradientDescentOptimizer
+from Training.adadelta import AdaDeltaOptimizer as AdaDeltaOptimizer
 from Training.gradient_descent import GradientDescentParameters as GradientDescentParameters
 
 
@@ -251,7 +252,7 @@ class NeuralNetwork(object):
 
         self.model['weights'] = unravel(result[0], self.model['layers'])
 
-    def train(self, X: np.matrix, y: np.matrix, max_iter=5000, alpha=0.1, reg_lambda=1, debug_mode=True):
+    def train(self, X: np.matrix, y: np.matrix, max_iter=5000, epochs: int = 400, alpha=0.1, reg_lambda=1, batch_size: int = 100, Optimizer: callable(GradientDescentOptimizer) = None, debug_mode=True):
         """
         Trains the network with gradient descent with the given training set and the corresponding output and
         applies the trained model to the network.
@@ -267,7 +268,7 @@ class NeuralNetwork(object):
         weights, layers = self.parse_model()
 
         # create an instance of GradientDescentOptimizer and optimize the weights
-        optimizer = GradientDescentOptimizer()
+        optimizer = Optimizer(batch_size=batch_size, epochs=epochs)
 
         gd_parameters = GradientDescentParameters()
         gd_parameters.learning_rate = alpha
@@ -278,6 +279,7 @@ class NeuralNetwork(object):
         gd_parameters.debug_mode = debug_mode
 
         optimizer.train(weights, X, y, gd_parameters)
+        print("Final Error:", '{:5.5e}'.format(self.cost_function(self.model['weights'], X, y, reg_lambda)))
 
     # ======== Helper Functions ========
 

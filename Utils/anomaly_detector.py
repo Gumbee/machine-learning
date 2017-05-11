@@ -13,7 +13,7 @@ class AnomalyDetector(object):
 
     def train(self, X: np.matrix):
         """
-        Trains the anomaly detector with a given data set. It is assumed that no entry in the data set correspond
+        Trains the anomaly detector with a given data set. For now it is assumed that no entry in the data set correspond
         to an anomaly.
         
         :param X:   The data set
