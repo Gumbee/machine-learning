@@ -1,5 +1,4 @@
 import numpy as np
-import scipy.optimize as opt
 
 from Training.gradient_descent import GradientDescentOptimizer as GradientDescentOptimizer
 from Training.adadelta import AdaDeltaOptimizer as AdaDeltaOptimizer
@@ -37,6 +36,27 @@ def unravel(vector: np.matrix, layers: list):
         thetas.append(matrix)
 
     return thetas
+
+
+class NNTrainingParameters(object):
+    """
+    Contains all necessary settings for the gradient descent algorithm.
+
+    learning_rate:      Gradient descent's factor by which the gradient is applied
+    batch_size:         Size of the batches
+    max_iter:           Maximum number of iterations (per batch) before the function should end the training
+    epochs:             Maximum number of passes over the training set
+    reg_lambda:         Regularization factor
+    Optimizer:          The optimizer to use to optimize the cost function
+    debug_mode:         (optional) True if debug mode should be turned on (outputs a table with important values). Default: True
+    """
+    learning_rate = 0.1
+    batch_size = 100
+    epochs = 100
+    max_iter = 1
+    reg_lambda = 1
+    Optimizer = None
+    debug_mode = True
 
 
 class NeuralNetwork(object):
@@ -236,36 +256,25 @@ class NeuralNetwork(object):
 
         return gradients
 
-    def fmin(self, X: np.matrix, y: np.matrix, reg_lambda=1, max_iter=600):
-        """
-        Trains the network with scipy's opt function with the given training set and the corresponding output and
-        applies the trained model to the network.
-        
-        :param X:           The training set with which the network is trained
-        :param y:           The training set's output
-        :param reg_lambda:  (optional) Regularization term for the weights. Default: 1
-        :param max_iter:    (optional) Maximal number of iterations before the function should end the training
-        :return:            None
-        """
-        # get optimized result from opt.fmin
-        result = opt.fmin_tnc(func=self.cost_wrapper, x0=ravel(self.model['weights']), args=(X, y, reg_lambda), maxfun=max_iter)
-
-        self.model['weights'] = unravel(result[0], self.model['layers'])
-
-    def train(self, X: np.matrix, y: np.matrix, max_iter=5000, epochs: int = 400, alpha=0.1, reg_lambda=1, batch_size: int = 100, Optimizer: callable(GradientDescentOptimizer) = None, debug_mode=True):
+    def train(self, X: np.matrix, y: np.matrix, nn_params: NNTrainingParameters):
         """
         Trains the network with gradient descent with the given training set and the corresponding output and
         applies the trained model to the network.
         
         :param X:           The training set with which the network is trained
         :param y:           The training set's output
-        :param max_iter:    (optional) Maximal number of iterations before the function should end the training
-        :param alpha:       (optional) Learning Rate of the gradient descent algorithm. Default: 0.1
-        :param reg_lambda:  (optional) Regularization term for the weights. Default: 1
-        :param debug_mode:  (optional) True if debug mode should be turned on (outputs a table with important values)
+        :param nn_params:   The parameters to be used for the training
         :return:            None
         """
         weights, layers = self.parse_model()
+
+        alpha = nn_params.learning_rate
+        batch_size = nn_params.batch_size
+        epochs = nn_params.epochs
+        max_iter = nn_params.max_iter
+        reg_lambda = nn_params.reg_lambda
+        Optimizer = nn_params.Optimizer
+        debug_mode = nn_params.debug_mode
 
         # create an instance of GradientDescentOptimizer and optimize the weights
         optimizer = Optimizer(batch_size=batch_size, epochs=epochs)

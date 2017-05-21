@@ -18,13 +18,13 @@ class GradientDescentParameters(object):
     """
     learning_rate = 0.1
     reg_lambda = 1.
-    cost_func: callable = None
-    gradient_func: callable = None
-    func_args: dict = {}
-    max_iter: int = 6
-    debug_mode: bool = True
-    callback: callable = None
-    callback_args: dict = {}
+    cost_func = None
+    gradient_func = None
+    func_args = {}
+    max_iter = 6
+    debug_mode = True
+    callback = None
+    callback_args = {}
 
 
 class GradientDescentOptimizer(object):
