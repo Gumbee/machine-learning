@@ -288,7 +288,6 @@ class NeuralNetwork(object):
         gd_parameters.debug_mode = debug_mode
 
         optimizer.train(weights, X, y, gd_parameters)
-        print("Final Error:", '{:5.5e}'.format(self.cost_function(self.model['weights'], X, y, reg_lambda)))
 
     # ======== Helper Functions ========
 

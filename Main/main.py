@@ -4,10 +4,7 @@ from Training.adadelta import AdaDeltaOptimizer as AdaDeltaOptimizer
 
 
 def main():
-    print("\nSGD Test -------------------------------------")
-    Tester.NeuralNetTest(GradientDescentOptimizer)
-    print("\nAdaDelta Test -------------------------------------")
-    Tester.NeuralNetTest(AdaDeltaOptimizer)
+    Tester.nn_optimizer_comparison(GradientDescentOptimizer, AdaDeltaOptimizer, epochs=50)
 
 
 main()

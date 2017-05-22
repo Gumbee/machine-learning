@@ -70,8 +70,9 @@ class GradientDescentOptimizer(object):
             self.print_table_header('P', 'IT', 'COST', 'CHNG', 'ASCL')
             self.print_table_entry(0, 0, initial_error, initial_error, 1.00)
 
-        idx = np.random.permutation(m)
         for i in range(0, self.epochs):
+
+            idx = np.random.permutation(m)
 
             for x in range(0, m, self.batch_size):
                 end = min(x+self.batch_size, m-1)

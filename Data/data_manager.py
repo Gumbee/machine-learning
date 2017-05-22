@@ -1,4 +1,5 @@
 import numpy as np
+import pickle as pickle
 import matplotlib.image as mpimg
 
 
@@ -44,6 +45,45 @@ def get_handwriting_data(training_ratio=0.6, validation_ratio=0.2):
 
     X_test = input_data[idx[validation_end:], :]
     y_test = output_data[idx[validation_end:], :]
+
+    return X, y, X_val, y_val, X_test, y_test
+
+
+def make_output(x):
+    """
+    Helper function to create the output vectors for the MNIST data set
+    
+    :param x:   The digit that should be converted to a output vector
+    :return:    The output vector
+    """
+
+    output = np.zeros(10)
+    output[x-1] = 1
+
+    return output
+
+
+def get_mnist_data():
+    """
+    Reads the MNIST data set into the variables X, y, X_val, y_val, X_test, y_test and returns them
+    
+    :return:    X -> Training set, y -> Training set's output, X_val -> Validation set, y_val -> Validation set's output,
+                X_test -> Test set, y_test -> Test set's output
+    """
+    # Data can be downloaded here: http://deeplearning.net/data/mnist/mnist.pkl.gz
+
+    file = open('../Data/DataFiles/mnist.pkl', 'rb')
+    X, X_val, X_test = pickle.load(file, encoding='latin1')
+    file.close()
+
+    y = np.array([make_output(x) for x in X[1]])
+    X = X[0]
+
+    y_val = np.array([make_output(x) for x in X_val[1]])
+    X_val = X_val[0]
+
+    y_test = np.array([make_output(x) for x in X_test[1]])
+    X_test = X_test[0]
 
     return X, y, X_val, y_val, X_test, y_test
 

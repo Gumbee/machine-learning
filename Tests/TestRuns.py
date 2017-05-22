@@ -1,4 +1,5 @@
 import time
+import copy
 import numpy as np
 import Data.data_manager as DataManager
 import Utils.visualizer as Visualizer
@@ -21,9 +22,10 @@ def get_mean_correct(prediction, y):
     print('Accuracy:', (num_right / (len(y) * 1.)) * 100)
 
 
-def NeuralNetTest(Optimizer: callable(GradientDescentOptimizer), batch_size: int = 60, epochs: int = 10, visualize: bool = False):
-    network = NeuralNetwork(400)
-    network.add_hidden_layer(100)
+def neural_net_test(Optimizer: callable(GradientDescentOptimizer), batch_size: int = 60, epochs: int = 2, visualize: bool = False):
+    network = NeuralNetwork(784)
+    network.add_hidden_layer(500)
+    network.add_hidden_layer(300)
     network.add_output_layer(10)
 
     nn_params = NNTrainingParameters()
@@ -34,7 +36,7 @@ def NeuralNetTest(Optimizer: callable(GradientDescentOptimizer), batch_size: int
     nn_params.max_iter = 1
     nn_params.epochs = epochs
 
-    X, y, X_val, y_val, X_test, y_test = DataManager.get_handwriting_data(0.6, 0.2)
+    X, y, X_val, y_val, X_test, y_test = DataManager.get_mnist_data()
 
     t = time.time()
 
@@ -54,11 +56,61 @@ def NeuralNetTest(Optimizer: callable(GradientDescentOptimizer), batch_size: int
 
         print("\nVisualizing....\n")
 
-        Visualizer.visualize_image(X_val, y_val, size=20, predictions=predictions, feed_values=confidence)
+        Visualizer.visualize_image(X_val, y_val, size=28, transpose=False, predictions=predictions, feed_values=confidence)
         Visualizer.visualize_image(network.model['weights'][0][:, 1:], size=20)
 
 
-def LinearRegressionTest():
+def nn_optimizer_comparison(OptimizerA: callable(GradientDescentOptimizer), OptimizerB: callable(GradientDescentOptimizer), batch_size: int = 60, epochs: int = 2):
+    network = NeuralNetwork(784)
+    network.add_hidden_layer(500)
+    network.add_hidden_layer(300)
+    network.add_output_layer(10)
+
+    nn_params = NNTrainingParameters()
+    nn_params.Optimizer = OptimizerA
+    nn_params.learning_rate = 1.5
+    nn_params.batch_size = batch_size
+    nn_params.reg_lambda = 0
+    nn_params.max_iter = 1
+    nn_params.epochs = epochs
+
+    X, y, X_val, y_val, X_test, y_test = DataManager.get_mnist_data()
+
+    print()
+    print(nn_params.Optimizer.__name__, "  -------------------------------------")
+
+    t = time.time()
+
+    init_val = [np.matrix(x) for x in network.model['weights']]
+    network.train(X, y, nn_params)
+
+    t = time.time()-t
+    print("\nProcess finished in", '{:6.3f}'.format(t), 'seconds\n')
+
+    get_mean_correct(network.predict(X), y)
+    get_mean_correct(network.predict(X_val), y_val)
+    get_mean_correct(network.predict(X_test), y_test)
+
+    network.model['weights'] = init_val
+    nn_params.Optimizer = OptimizerB
+
+    print()
+    print(nn_params.Optimizer.__name__, "  -------------------------------------")
+
+    t = time.time()
+
+    network.train(X, y, nn_params)
+
+    t = time.time() - t
+    print("\nProcess finished in", '{:6.3f}'.format(t), 'seconds\n')
+
+    get_mean_correct(network.predict(X), y)
+    get_mean_correct(network.predict(X_val), y_val)
+    get_mean_correct(network.predict(X_test), y_test)
+
+
+
+def linear_regression_test():
     init_theta = np.matrix([0, 0]).astype(np.float64)
 
     X, y = DataManager.generate_data(100, noise=10, degree=2)
@@ -85,7 +137,7 @@ def LinearRegressionTest():
     # Visualizer.visualize_final_result(X, y, init_theta)
 
 
-def AnomalyTest():
+def anomaly_test():
 
     detector = AnomalyDetector(multivariate=True)
 
