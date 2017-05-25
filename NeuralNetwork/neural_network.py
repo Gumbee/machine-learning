@@ -44,7 +44,6 @@ class NNTrainingParameters(object):
 
     learning_rate:      Gradient descent's factor by which the gradient is applied
     batch_size:         Size of the batches
-    max_iter:           Maximum number of iterations (per batch) before the function should end the training
     epochs:             Maximum number of passes over the training set
     reg_lambda:         Regularization factor
     Optimizer:          The optimizer to use to optimize the cost function
@@ -53,7 +52,6 @@ class NNTrainingParameters(object):
     learning_rate = 0.1
     batch_size = 100
     epochs = 100
-    max_iter = 1
     reg_lambda = 1
     Optimizer = None
     debug_mode = True
@@ -271,7 +269,6 @@ class NeuralNetwork(object):
         alpha = nn_params.learning_rate
         batch_size = nn_params.batch_size
         epochs = nn_params.epochs
-        max_iter = nn_params.max_iter
         reg_lambda = nn_params.reg_lambda
         Optimizer = nn_params.Optimizer
         debug_mode = nn_params.debug_mode
@@ -284,7 +281,6 @@ class NeuralNetwork(object):
         gd_parameters.reg_lambda = reg_lambda
         gd_parameters.cost_func = self.cost_function
         gd_parameters.gradient_func = self.gradient
-        gd_parameters.max_iter = max_iter
         gd_parameters.debug_mode = debug_mode
 
         optimizer.train(weights, X, y, gd_parameters)

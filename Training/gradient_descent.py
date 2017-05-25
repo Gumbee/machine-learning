@@ -21,7 +21,6 @@ class GradientDescentParameters(object):
     cost_func = None
     gradient_func = None
     func_args = {}
-    max_iter = 6
     debug_mode = True
     callback = None
     callback_args = {}
@@ -46,8 +45,10 @@ class GradientDescentOptimizer(object):
         """
         print('\nTraining Parameters...')
 
-        reg_lambda = gd_parameters.reg_lambda
+        alpha = gd_parameters.learning_rate
         cost_func = gd_parameters.cost_func
+        gradient_func = gd_parameters.gradient_func
+        reg_lambda = gd_parameters.reg_lambda
         func_args = gd_parameters.func_args
         debug_mode = gd_parameters.debug_mode
         callback = gd_parameters.callback
@@ -57,8 +58,6 @@ class GradientDescentOptimizer(object):
 
         # keeps track of how many entries we've already printed
         entry_num = 1
-        # factor by which the learning rate alpha is scaled
-        alpha_scale = 1.
         # keep track of the previous iteration's error so we can calculate the relative change
         prev_cst = initial_error
         # keep track of how often we didn't change the cost by applying a gradient descent step
@@ -70,13 +69,31 @@ class GradientDescentOptimizer(object):
             self.print_table_header('P', 'IT', 'COST', 'CHNG', 'ASCL')
             self.print_table_entry(0, 0, initial_error, initial_error, 1.00)
 
+        self.prepare_variables(init_theta)
+
         for i in range(0, self.epochs):
 
-            idx = np.random.permutation(m)
+            idx = np.arange(m)
 
+            # train with all the batches
             for x in range(0, m, self.batch_size):
                 end = min(x+self.batch_size, m-1)
-                self.train_batch(init_theta, X[idx[x:end], :], y[idx[x:end], :], gd_parameters)
+                # calculate gradients
+                gradients = gradient_func(init_theta, X[idx[x:end], :], y[idx[x:end], :], reg_lambda, **func_args)
+
+                self.pre_update(gradients)
+
+                delta = self.delta(alpha, gradients)
+
+                # update weights with gradients
+                # if x0 is a list, then we apply gradient descent for each item in the list
+                if isinstance(init_theta, list):
+                    for e in range(0, len(init_theta)):
+                        init_theta[e] += delta[e]
+                else:
+                    init_theta += delta
+
+                self.post_update(delta)
 
             # reevaluate cost function
             cost = cost_func(init_theta, X, y, reg_lambda, **func_args)
@@ -86,7 +103,7 @@ class GradientDescentOptimizer(object):
             prev_cst = cost
 
             if debug_mode and i % 1 == 0:
-                self.print_table_entry(entry_num, i + 1, cost, rel_chng, alpha_scale)
+                self.print_table_entry(entry_num, i + 1, cost, rel_chng, 1.0)
                 entry_num += 1
 
             if rel_chng - (-1e-30) > 0:
@@ -99,43 +116,11 @@ class GradientDescentOptimizer(object):
                 num_converged = 0
 
             if callback is not None:
-                callback(init_theta, X, t, **callback_args)
+                callback(init_theta, X, i, **callback_args)
 
         print('\033[91m', '\n{:<15s}'.format('Initial Error:'), '{:5.6e}'.format(initial_error),
               '\n{:<15s}'.format('New Error:'),
               '{:>5.6e}'.format(cost_func(init_theta, X, y, reg_lambda, **func_args)), '\033[0m')
-
-    def train_batch(self, init_theta, X: np.matrix, y: np.matrix, gd_parameters: GradientDescentParameters):
-        # retrieve parameter values
-        alpha = gd_parameters.learning_rate
-        reg_lambda = gd_parameters.reg_lambda
-        cost_func = gd_parameters.cost_func
-        gradient_func = gd_parameters.gradient_func
-        func_args = gd_parameters.func_args
-        max_iter = gd_parameters.max_iter
-        debug_mode = gd_parameters.debug_mode
-        callback = gd_parameters.callback
-        callback_args = gd_parameters.callback_args
-
-        self.prepare_variables(init_theta)
-
-        for t in range(0, max_iter):
-            # calculate gradients
-            gradients = gradient_func(init_theta, X, y, reg_lambda, **func_args)
-
-            self.pre_update(gradients)
-
-            delta = self.delta(alpha, gradients)
-
-            # update weights with gradients
-            # if x0 is a list, then we apply gradient descent for each item in the list
-            if isinstance(init_theta, list):
-                for i in range(0, len(init_theta)):
-                    init_theta[i] += delta[i]
-            else:
-                init_theta += delta
-
-            self.post_update(delta)
 
     def delta(self, alpha: float, gradients):
         if isinstance(gradients, list):

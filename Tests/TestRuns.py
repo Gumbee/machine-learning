@@ -4,10 +4,12 @@ import numpy as np
 import Data.data_manager as DataManager
 import Utils.visualizer as Visualizer
 import Training.cost_model as cost_model
+import Utils.feature_normalizer
 
 from NeuralNetwork.neural_network import NeuralNetwork as NeuralNetwork
 from NeuralNetwork.neural_network import NNTrainingParameters as NNTrainingParameters
 from Training.gradient_descent import GradientDescentOptimizer as GradientDescentOptimizer
+from Training.adadelta import AdaDeltaOptimizer as AdaDeltaOptimizer
 from Training.gradient_descent import GradientDescentParameters as GradientDescentParameters
 from Utils.anomaly_detector import AnomalyDetector as AnomalyDetector
 
@@ -39,9 +41,7 @@ def neural_net_test(Optimizer: callable(GradientDescentOptimizer), batch_size: i
     X, y, X_val, y_val, X_test, y_test = DataManager.get_mnist_data()
 
     t = time.time()
-
     network.train(X, y, nn_params)
-
     t = time.time()-t
     print("\nProcess finished in", '{:6.3f}'.format(t), 'seconds\n')
 
@@ -71,7 +71,6 @@ def nn_optimizer_comparison(OptimizerA: callable(GradientDescentOptimizer), Opti
     nn_params.learning_rate = 1.5
     nn_params.batch_size = batch_size
     nn_params.reg_lambda = 0
-    nn_params.max_iter = 1
     nn_params.epochs = epochs
 
     X, y, X_val, y_val, X_test, y_test = DataManager.get_mnist_data()
@@ -109,17 +108,16 @@ def nn_optimizer_comparison(OptimizerA: callable(GradientDescentOptimizer), Opti
     get_mean_correct(network.predict(X_test), y_test)
 
 
-
 def linear_regression_test():
-    init_theta = np.matrix([0, 0]).astype(np.float64)
+    init_theta = np.matrix([0, 0, 0]).astype(np.float64)
 
-    X, y = DataManager.generate_data(100, noise=10, degree=2)
+    X, y = DataManager.generate_data(1000, noise=10, degree=3)
 
     Visualizer.plt.ion()
     Visualizer.plt.scatter(np.ravel(X[0:, 0].T), np.ravel(y.T), s=12)
     Visualizer.plt.show()
 
-    optimizer = GradientDescentOptimizer()
+    optimizer = AdaDeltaOptimizer(epochs=50, batch_size=2000)
 
     # set gradient descent parameters
     gd_parameters = GradientDescentParameters()
@@ -127,7 +125,6 @@ def linear_regression_test():
     gd_parameters.reg_lambda = 0
     gd_parameters.cost_func = cost_model.sum_of_squares
     gd_parameters.gradient_func = cost_model.sum_of_squares_gradient
-    gd_parameters.max_iter = 20
     gd_parameters.callback = Visualizer.visualize_training_step
     gd_parameters.callback_args = {'step': 1}
 

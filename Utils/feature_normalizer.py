@@ -23,7 +23,7 @@ def standardize(X: np.matrix):
 
 def scale_features(X: np.matrix, min: float = 0., max: float = 1.):
     """ 
-    Performs feature scaling on the input matrix X.
+    Performs feature scaling on the input matrix X. Assumes that each column has a different max and min element.
     
     :param X: Input matrix
     :param min: lower bound for the feature scaling
