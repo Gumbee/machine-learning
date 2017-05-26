@@ -1,4 +1,5 @@
 import numpy as np
+import NeuralNetwork.activations as Activations
 
 from Training.gradient_descent import GradientDescentOptimizer as GradientDescentOptimizer
 from Training.adadelta import AdaDeltaOptimizer as AdaDeltaOptimizer
@@ -237,11 +238,12 @@ class NeuralNetwork(object):
         deltas = [None] * L
         gradients = []
 
+        # backpropagation part
         # calculate deltas (layer errors)
         deltas[L - 1] = (activations[L - 1] - y).T
 
         for i in range(L - 2, 0, -1):
-            deltas[i] = np.multiply(weights[i].T.dot(deltas[i + 1])[1:, :], self.sigmoid_gradient(activations[i].T))
+            deltas[i] = np.multiply(weights[i].T.dot(deltas[i + 1])[1:, :], self.model['layers'][i].activation_gradient(activations[i].T))
 
         for i in range(0, W):
             # create a zero matrix with the same dimensions as our weight matrix
@@ -307,7 +309,7 @@ class NeuralNetwork(object):
 
         for i in range(0, len(layers)-1):
             X = np.hstack((np.ones((m, 1)), X))
-            X = self.sigmoid(np.dot(X, weights[i].T))
+            X = self.model['layers'][i+1].activate(np.dot(X, weights[i].T))
             activations.append(X)
 
         return activations
@@ -340,38 +342,6 @@ class NeuralNetwork(object):
             output[i][idx] = 1
         return output
 
-    # ======== Activation Functions ========
-
-    @staticmethod
-    def sigmoid(z):
-        """
-        The activation function. Takes an input z (can be a scalar, vector or matrix) and outputs a value between
-        zero and one based on the input.
-        
-        :param z:   The input value
-        :return:    A value (or vector/matrix of values) between 0 and 1
-        """
-        if type(z).__module__ == np.__name__:
-            # np.clip is used to prevent overflowing
-            return 1 / (1 + np.exp(-np.clip(z, -100, 100)))
-        else:
-            return NeuralNetwork.sigmoid(np.array(z))
-
-    @staticmethod
-    def sigmoid_gradient(z):
-        """
-        The activation function's derivative function. Takes an input z (can be a scalar, vector or matrix) and outputs
-        the sigmoid function's gradient value for that input.
-        
-        :param z:   The input value
-        :return:    The sigmoid function's gradient for that input z
-        """
-        if type(z).__module__ == np.__name__:
-            # np.clip is used to prevent overflowing
-            return np.multiply(z, (1 - z))
-        else:
-            return NeuralNetwork.sigmoid_gradient(np.array(z))
-
     # ======== Util Functions ========
 
     def get_model(self):
@@ -394,12 +364,40 @@ class NeuralLayer(object):
     Class that contains necessary information for a neural layer (e.g how many units).
     """
 
-    def __init__(self, units: int, has_bias=True):
+    def __init__(self, units: int, has_bias=True, activator: callable = Activations.sigmoid):
         self.units = units
         self.has_bias = has_bias
         self.layer = np.zeros(units+(has_bias*1))
 
+        self.activator, self.activator_gradient = activator()
+
         # if this layer has a bias, we have to set the first item to 1
         if has_bias:
             self.layer[0] = 1
+
+    def activate(self, z):
+        """
+        The activation function. Takes an input z (can be a scalar, vector or matrix) and outputs a value based on the input.
+
+        :param z:   The input value
+        :return:    A value (or vector/matrix of values)
+        """
+        if type(z).__module__ == np.__name__:
+            return self.activator(z)
+        else:
+            return self.activator(np.array(z))
+
+    def activation_gradient(self, z):
+        """
+        The activation function's derivative function. Takes an input z (can be a scalar, vector or matrix) and outputs
+        the function's gradient value for that input.
+
+        :param z:   The input value
+        :return:    The activation function's gradient for that input z
+        """
+        if type(z).__module__ == np.__name__:
+            # np.clip is used to prevent overflowing
+            return self.activator_gradient(z)
+        else:
+            return self.activator_gradient(np.array(z))
 

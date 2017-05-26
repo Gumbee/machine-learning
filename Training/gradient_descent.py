@@ -89,9 +89,9 @@ class GradientDescentOptimizer(object):
                 # if x0 is a list, then we apply gradient descent for each item in the list
                 if isinstance(init_theta, list):
                     for e in range(0, len(init_theta)):
-                        init_theta[e] += delta[e]
+                        init_theta[e] -= delta[e]
                 else:
-                    init_theta += delta
+                    init_theta -= delta
 
                 self.post_update(delta)
 
@@ -125,10 +125,10 @@ class GradientDescentOptimizer(object):
     def delta(self, alpha: float, gradients):
         if isinstance(gradients, list):
             for i in range(0, len(gradients)):
-                gradients[i] *= -alpha
+                gradients[i] *= alpha
             return gradients
         else:
-            return -alpha * gradients
+            return alpha * gradients
 
     def pre_update(self, gradients):
         pass

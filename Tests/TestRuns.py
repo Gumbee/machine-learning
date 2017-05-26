@@ -68,7 +68,7 @@ def nn_optimizer_comparison(OptimizerA: callable(GradientDescentOptimizer), Opti
 
     nn_params = NNTrainingParameters()
     nn_params.Optimizer = OptimizerA
-    nn_params.learning_rate = 1.5
+    nn_params.learning_rate = 1
     nn_params.batch_size = batch_size
     nn_params.reg_lambda = 0
     nn_params.epochs = epochs
