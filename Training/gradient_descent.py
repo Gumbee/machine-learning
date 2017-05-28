@@ -4,12 +4,11 @@ import numpy as np
 class GradientDescentParameters(object):
     """
     Contains all necessary settings for the gradient descent algorithm.
-    
+
     learning_rate:      Gradient descent's factor by which the gradient is applied
     reg_lambda:         Regularization factor
     cost_func:          The cost function that determines how good the parameters are performing
     gradient_func:      The function that returns the parameters gradient values
-    max_iter:           Maximum number of iterations before the function should end the training
     debug_mode:         (optional) True if debug mode should be turned on (outputs a table with important values). Default: True
     func_args:          (optional) Additional parameters that will be passed on to cost_func and gradient_func
     callback:           (optional) Function that is called after every iteration with the training set, the current parameter values
@@ -21,9 +20,18 @@ class GradientDescentParameters(object):
     cost_func = None
     gradient_func = None
     func_args = {}
-    debug_mode = True
     callback = None
     callback_args = {}
+
+
+class LoggingParameters(object):
+    """
+    Contains all necessary settings for the gradient descent algorithm to know how to log the progress.
+    """
+    log_progress = True
+    num_cost_evaluations = 50
+    cost_eval_use_subset = True
+    cost_eval_subset_size = 5000
 
 
 class GradientDescentOptimizer(object):
@@ -33,7 +41,7 @@ class GradientDescentOptimizer(object):
         self.batch_size = batch_size
         self.epochs = epochs
 
-    def train(self, init_theta, X: np.matrix, y: np.matrix, gd_parameters: GradientDescentParameters):
+    def train(self, init_theta, X: np.matrix, y: np.matrix, gd_parameters: GradientDescentParameters, log_parameters: LoggingParameters = LoggingParameters()):
         """
         Trains the parameters in init_theta to minimize the provided cost function.
         
@@ -41,6 +49,7 @@ class GradientDescentOptimizer(object):
         :param X:               The training set
         :param y:               The training set's corresponding output
         :param gd_parameters:   The parameters with which gradient descent should be run
+        :param log_parameters:  The parameters which specify how the progress should be logged
         :return:                None
         """
         print('\nTraining Parameters...')
@@ -50,9 +59,13 @@ class GradientDescentOptimizer(object):
         gradient_func = gd_parameters.gradient_func
         reg_lambda = gd_parameters.reg_lambda
         func_args = gd_parameters.func_args
-        debug_mode = gd_parameters.debug_mode
         callback = gd_parameters.callback
         callback_args = gd_parameters.callback_args
+
+        log_progress = log_parameters.log_progress
+        num_cost_eval = log_parameters.num_cost_evaluations
+        cost_eval_use_subset = log_parameters.cost_eval_use_subset
+        cost_eval_subset_size = log_parameters.cost_eval_subset_size
 
         initial_error = gd_parameters.cost_func(init_theta, X, y, reg_lambda)
 
@@ -61,21 +74,20 @@ class GradientDescentOptimizer(object):
         # keep track of the previous iteration's error so we can calculate the relative change
         prev_cst = initial_error
         # keep track of how often we didn't change the cost by applying a gradient descent step
-        num_converged = 0
 
         m, _ = X.shape
 
-        if debug_mode:
-            self.print_table_header('P', 'IT', 'COST', 'CHNG', 'ASCL')
+        if log_progress:
+            self.print_table_header('P', 'EP', 'COST', 'CHNG', 'ASCL')
             self.print_table_entry(0, 0, initial_error, initial_error, 1.00)
 
         self.prepare_variables(init_theta)
 
+        idx = np.random.permutation(m)
+
         for i in range(0, self.epochs):
 
-            idx = np.arange(m)
-
-            # train with all the batches
+            # train all the batches
             for x in range(0, m, self.batch_size):
                 end = min(x+self.batch_size, m-1)
                 # calculate gradients
@@ -95,28 +107,27 @@ class GradientDescentOptimizer(object):
 
                 self.post_update(delta)
 
-            # reevaluate cost function
-            cost = cost_func(init_theta, X, y, reg_lambda, **func_args)
-            # get relative change of the cost function
-            rel_chng = cost - prev_cst
-            # update previous cost to current cost
-            prev_cst = cost
+                # only log the progress and reevaluate the cost every other iteration
+                if log_progress and x/self.batch_size % int(max((m/self.batch_size)/num_cost_eval, 1)) == 0:
+                    if cost_eval_use_subset:
+                        cst_idx = np.random.permutation(m)
+                        cost_eval_subset_size = min(cost_eval_subset_size, m)
+                        cst_idx = cst_idx[0:cost_eval_subset_size]
 
-            if debug_mode and i % 1 == 0:
-                self.print_table_entry(entry_num, i + 1, cost, rel_chng, 1.0)
-                entry_num += 1
+                        # reevaluate cost function
+                        cost = cost_func(init_theta, X[cst_idx, :], y[cst_idx, :], reg_lambda, **func_args)
+                    else:
+                        cost = cost_func(init_theta, X, y, reg_lambda, **func_args)
 
-            if rel_chng - (-1e-30) > 0:
-                if num_converged > 50:
-                    print('\n\033[91mGradient Descent converged. Training ended.\033[0m')
-                    return
-                else:
-                    num_converged += 1
-            else:
-                num_converged = 0
+                    # get relative change of the cost function
+                    rel_chng = cost - prev_cst
+                    # update previous cost to current cost
+                    prev_cst = cost
+                    self.print_table_entry(entry_num, i + 1, cost, rel_chng, 1.0)
+                    entry_num += 1
 
-            if callback is not None:
-                callback(init_theta, X, i, **callback_args)
+                if callback is not None:
+                    callback(init_theta, X, i, **callback_args)
 
         print('\033[91m', '\n{:<15s}'.format('Initial Error:'), '{:5.6e}'.format(initial_error),
               '\n{:<15s}'.format('New Error:'),

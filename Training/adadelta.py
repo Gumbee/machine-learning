@@ -2,6 +2,7 @@ import numpy as np
 
 from random import randint
 from Training.gradient_descent import GradientDescentOptimizer as GradientDescentOptimizer
+from Training.gradient_descent import GradientDescentParameters as GradientDescentParameters
 from Training.accumulator import Accumulator as Accumulator
 
 

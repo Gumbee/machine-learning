@@ -1,10 +1,8 @@
 import time
-import copy
 import numpy as np
 import Data.data_manager as DataManager
 import Utils.visualizer as Visualizer
 import Training.cost_model as cost_model
-import Utils.feature_normalizer
 
 from NeuralNetwork.neural_network import NeuralNetwork as NeuralNetwork
 from NeuralNetwork.neural_network import NNTrainingParameters as NNTrainingParameters

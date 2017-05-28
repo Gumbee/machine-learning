@@ -4,6 +4,7 @@ import NeuralNetwork.activations as Activations
 from Training.gradient_descent import GradientDescentOptimizer as GradientDescentOptimizer
 from Training.adadelta import AdaDeltaOptimizer as AdaDeltaOptimizer
 from Training.gradient_descent import GradientDescentParameters as GradientDescentParameters
+from Training.gradient_descent import LoggingParameters as LoggingParameters
 
 
 def ravel(weights: list):
@@ -48,14 +49,14 @@ class NNTrainingParameters(object):
     epochs:             Maximum number of passes over the training set
     reg_lambda:         Regularization factor
     Optimizer:          The optimizer to use to optimize the cost function
-    debug_mode:         (optional) True if debug mode should be turned on (outputs a table with important values). Default: True
+    log_progress:         (optional) True if the progress should be logged (outputs a table with important values). Default: True
     """
     learning_rate = 0.1
-    batch_size = 100
-    epochs = 100
+    batch_size = 64
+    epochs = 10
     reg_lambda = 1
     Optimizer = None
-    debug_mode = True
+    log_progress = True
 
 
 class NeuralNetwork(object):
@@ -273,7 +274,7 @@ class NeuralNetwork(object):
         epochs = nn_params.epochs
         reg_lambda = nn_params.reg_lambda
         Optimizer = nn_params.Optimizer
-        debug_mode = nn_params.debug_mode
+        log_progress = nn_params.log_progress
 
         # create an instance of GradientDescentOptimizer and optimize the weights
         optimizer = Optimizer(batch_size=batch_size, epochs=epochs)
@@ -283,7 +284,9 @@ class NeuralNetwork(object):
         gd_parameters.reg_lambda = reg_lambda
         gd_parameters.cost_func = self.cost_function
         gd_parameters.gradient_func = self.gradient
-        gd_parameters.debug_mode = debug_mode
+
+        log_parameters = LoggingParameters()
+        log_parameters.log_progress = log_progress
 
         optimizer.train(weights, X, y, gd_parameters)
 
