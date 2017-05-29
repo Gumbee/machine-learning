@@ -1,4 +1,9 @@
 import numpy as np
+import time
+
+from os import path as os_path
+from os import makedirs as os_makedirs
+from definitions import ROOT_DIR
 
 
 class GradientDescentParameters(object):
@@ -32,6 +37,11 @@ class LoggingParameters(object):
     num_cost_evaluations = 50
     cost_eval_use_subset = True
     cost_eval_subset_size = 5000
+    log_file_name = 'gd_log_'
+
+    def __init__(self):
+        self.log_file_name = 'gd_log_' + time.strftime("%Y%m%d-%H%M%S")
+
 
 
 class GradientDescentOptimizer(object):
@@ -41,7 +51,7 @@ class GradientDescentOptimizer(object):
         self.batch_size = batch_size
         self.epochs = epochs
 
-    def train(self, init_theta, X: np.matrix, y: np.matrix, gd_parameters: GradientDescentParameters, log_parameters: LoggingParameters = LoggingParameters()):
+    def train(self, init_theta, X: np.matrix, y: np.matrix, gd_parameters: GradientDescentParameters, log_parameters: LoggingParameters = None):
         """
         Trains the parameters in init_theta to minimize the provided cost function.
         
@@ -53,6 +63,9 @@ class GradientDescentOptimizer(object):
         :return:                None
         """
         print('\nTraining Parameters...')
+
+        if log_parameters is None:
+            log_parameters = LoggingParameters()
 
         alpha = gd_parameters.learning_rate
         cost_func = gd_parameters.cost_func
@@ -66,6 +79,7 @@ class GradientDescentOptimizer(object):
         num_cost_eval = log_parameters.num_cost_evaluations
         cost_eval_use_subset = log_parameters.cost_eval_use_subset
         cost_eval_subset_size = log_parameters.cost_eval_subset_size
+        log_file_name = log_parameters.log_file_name
 
         initial_error = gd_parameters.cost_func(init_theta, X, y, reg_lambda)
 
@@ -124,6 +138,7 @@ class GradientDescentOptimizer(object):
                     # update previous cost to current cost
                     prev_cst = cost
                     self.print_table_entry(entry_num, i + 1, cost, rel_chng, 1.0)
+                    self.write_progress_to_file(entry_num, i + 1, cost, rel_chng, log_file_name)
                     entry_num += 1
 
                 if callback is not None:
@@ -238,3 +253,14 @@ class GradientDescentOptimizer(object):
         print('\033[91m', '{:>4d}'.format(First), '{:1s}'.format('|'), '{:>5d}'.format(Second), '{:>1s}'.format('|'),
               '{:>15.6e}'.format(Third), '{:>1s}'.format('|'), '{:>15.6e}'.format(Fourth), '{:>1s}'.format('|'),
               '{:>10.3f}'.format(Fifth), '{:>1s}'.format('|'), '\033[0m')
+
+    @staticmethod
+    def write_progress_to_file(iteration: int, epoch: int, cost: float, rel_chng: float, file_name: str):
+        path = os_path.join(ROOT_DIR, 'Logs/' + file_name)
+
+        if not os_path.exists(os_path.dirname(path)):
+            os_makedirs(os_path.dirname(path))
+
+        log_file = open(path, 'a')
+        print(iteration, epoch, cost, rel_chng, file=log_file)
+

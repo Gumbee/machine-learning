@@ -288,7 +288,7 @@ class NeuralNetwork(object):
         log_parameters = LoggingParameters()
         log_parameters.log_progress = log_progress
 
-        optimizer.train(weights, X, y, gd_parameters)
+        optimizer.train(weights, X, y, gd_parameters, log_parameters)
 
     # ======== Helper Functions ========
 
