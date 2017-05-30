@@ -1,38 +1,11 @@
 import numpy as np
 
-from Logging.logger import LogHandler as LogHandler
 from Logging.logger import GDLoggingParameters as GDLoggingParameters
-
-
-class GradientDescentParameters(object):
-    """
-    Contains all necessary settings for the gradient descent algorithm.
-
-    learning_rate:      Gradient descent's factor by which the gradient is applied
-    reg_lambda:         Regularization factor
-    cost_func:          The cost function that determines how good the parameters are performing
-    gradient_func:      The function that returns the parameters gradient values
-    debug_mode:         (optional) True if debug mode should be turned on (outputs a table with important values). Default: True
-    func_args:          (optional) Additional parameters that will be passed on to cost_func and gradient_func
-    callback:           (optional) Function that is called after every iteration with the training set, the current parameter values
-                        and the current iteration number as parameters. Additional parameters can be specified via callback_args
-    callback_args:      (optional) Additional parameters that should be passed to the callback function
-    """
-    epochs = 10
-    learning_rate = 0.1
-    reg_lambda = 1.
-    cost_func = None
-    gradient_func = None
-    func_args = {}
-    callback = None
-    callback_args = {}
+from Logging.logger import LogHandler as LogHandler
+from parameters import GradientDescentParameters as GradientDescentParameters
 
 
 class GradientDescentOptimizer(object):
-
-    def __init__(self, batch=True, batch_size: int = 60):
-        self.batch = batch
-        self.batch_size = batch_size
 
     def train(self, init_theta, X: np.matrix, y: np.matrix, gd_parameters: GradientDescentParameters, log_handler: LogHandler = None):
         """
@@ -47,10 +20,9 @@ class GradientDescentOptimizer(object):
         """
         print('\nTraining Parameters...')
 
-        log_parameters = log_handler.gd_log_parameters or GDLoggingParameters()
-
         # get relevant gradient descent parameters
         epochs = gd_parameters.epochs
+        batch_size = gd_parameters.batch_size
         alpha = gd_parameters.learning_rate
         cost_func = gd_parameters.cost_func
         gradient_func = gd_parameters.gradient_func
@@ -59,29 +31,12 @@ class GradientDescentOptimizer(object):
         callback = gd_parameters.callback
         callback_args = gd_parameters.callback_args
 
-        # get relevant logging parameters
-        log_progress = log_parameters.log_progress
-        num_cost_eval = log_parameters.num_cost_evaluations
-        cost_eval_use_subset = log_parameters.cost_eval_use_subset
-        cost_eval_subset_size = log_parameters.cost_eval_subset_size
-        log_file_name = log_parameters.log_file_name
-
         # remember with which error rate we started
         initial_error = gd_parameters.cost_func(init_theta, X, y, reg_lambda)
 
-        # keeps track of how many entries we've already printed
-        entry_num = 0
-        # keep track of the previous iteration's error so we can calculate the relative change
-        prev_cst = initial_error
-        # keep track of how often we didn't change the cost by applying a gradient descent step
-
         m, _ = X.shape
 
-        # only print the table if we want to log the progress
-        if log_progress:
-            self.print_table_header('P', 'EP', 'COST', 'CHNG', 'ASCL')
-            self.print_table_entry(0, 0, initial_error, initial_error, 1.00)
-            log_handler.write_gd_progress_to_file(0, 1, initial_error, initial_error, file_name=log_file_name)
+        log_handler.log_gd_entry(initial_error)
 
         self.prepare_variables(init_theta)
 
@@ -90,9 +45,9 @@ class GradientDescentOptimizer(object):
         for i in range(0, epochs):
 
             # train all the batches
-            for x in range(0, m, self.batch_size):
+            for x in range(0, m, batch_size):
                 # determine at which index the current batch ends
-                end = min(x+self.batch_size, m-1)
+                end = min(x+batch_size, m-1)
 
                 # calculate gradients
                 gradients = gradient_func(init_theta, X[idx[x:end], :], y[idx[x:end], :], reg_lambda, **func_args)
@@ -114,30 +69,7 @@ class GradientDescentOptimizer(object):
                 # perform post-update calculations if necessary
                 self.post_update(delta)
 
-                # only log the progress and reevaluate the cost every other iteration
-                if log_progress and x/self.batch_size % int(max((m/self.batch_size)/num_cost_eval, 1)) == 0:
-                    if cost_eval_use_subset and cost_eval_subset_size < m:
-                        # if we only want to use a subset of the total training set to determine the cost value then
-                        # we shuffle the indices of the training set so that we determine the cost with random entries
-                        # of the training set
-                        cst_idx = np.random.permutation(m)
-                        cst_idx = cst_idx[0:cost_eval_subset_size]
-
-                        # reevaluate cost function
-                        cost = cost_func(init_theta, X[cst_idx, :], y[cst_idx, :], reg_lambda, **func_args)
-                    else:
-                        cost = cost_func(init_theta, X, y, reg_lambda, **func_args)
-
-                    # get relative change of the cost function
-                    rel_chng = cost - prev_cst
-                    # update previous cost to current cost
-                    prev_cst = cost
-                    # update the entry number
-                    entry_num += 1
-
-                    # log progress
-                    self.print_table_entry(entry_num, i + 1, cost, rel_chng, 1.0)
-                    log_handler.write_gd_progress_to_file(entry_num, i + 1, cost, rel_chng, file_name=log_file_name)
+                log_handler.log_gd_progress(i, x, batch_size, init_theta, X, y, gd_parameters)
 
                 if callback is not None:
                     callback(init_theta, X, i, **callback_args)
@@ -236,20 +168,5 @@ class GradientDescentOptimizer(object):
                             raise Exception('Gradients do not match!')
         else:
             raise Exception('Unknown type of gradients!')
-
-    # ================= Util Functions =================
-
-    @staticmethod
-    def print_table_header(First: str, Second: str, Third: str, Fourth: str, Fifth: str):
-        print('\n\033[91m', '{:>4s}'.format(str(First)), '{:>1s}'.format('|'), '{:>5s}'.format(str(Second)), '{:>1s}'.format('|'),
-              '{:>15s}'.format(str(Third)), '{:>1s}'.format('|'), '{:>15s}'.format(str(Fourth)), '{:>1s}'.format('|'),
-              '{:>10s}'.format(str(Fifth)), '{:>1s}'.format('|'), '\033[0m')
-        print('\033[91m', '{:─>63s}'.format(''), '\033[0m')
-
-    @staticmethod
-    def print_table_entry(First: int, Second: int, Third: float, Fourth: float, Fifth: float):
-        print('\033[91m', '{:>4d}'.format(First), '{:1s}'.format('|'), '{:>5d}'.format(Second), '{:>1s}'.format('|'),
-              '{:>15.6e}'.format(Third), '{:>1s}'.format('|'), '{:>15.6e}'.format(Fourth), '{:>1s}'.format('|'),
-              '{:>10.3f}'.format(Fifth), '{:>1s}'.format('|'), '\033[0m')
 
 

@@ -1,11 +1,10 @@
 import numpy as np
 import NeuralNetwork.activations as Activations
 
-from Training.gradient_descent import GradientDescentOptimizer as GradientDescentOptimizer
-from Training.adadelta import AdaDeltaOptimizer as AdaDeltaOptimizer
-from Training.gradient_descent import GradientDescentParameters as GradientDescentParameters
 from Logging.logger import LogHandler as LogHandler
-from Logging.logger import GDLoggingParameters as GDLoggingParameters
+from Training.gradient_descent import GradientDescentOptimizer as GradientDescentOptimizer
+from parameters import GDLoggingParameters as GDLoggingParameters
+from parameters import GradientDescentParameters as GradientDescentParameters
 
 
 def ravel(weights: list):
@@ -39,25 +38,6 @@ def unravel(vector: np.matrix, layers: list):
         thetas.append(matrix)
 
     return thetas
-
-
-class NNTrainingParameters(object):
-    """
-    Contains all necessary settings for the gradient descent algorithm.
-
-    learning_rate:      Gradient descent's factor by which the gradient is applied
-    batch_size:         Size of the batches
-    epochs:             Maximum number of passes over the training set
-    reg_lambda:         Regularization factor
-    Optimizer:          The optimizer to use to optimize the cost function
-    log_progress:         (optional) True if the progress should be logged (outputs a table with important values). Default: True
-    """
-    learning_rate = 0.1
-    batch_size = 64
-    epochs = 10
-    reg_lambda = 1
-    Optimizer = None
-    log_progress = True
 
 
 class NeuralNetwork(object):
@@ -258,41 +238,31 @@ class NeuralNetwork(object):
 
         return gradients
 
-    def train(self, X: np.matrix, y: np.matrix, nn_params: NNTrainingParameters):
+    def train(self, X: np.matrix, y: np.matrix, Optimizer: callable(GradientDescentOptimizer), gd_params: GradientDescentParameters = None, log_params: GDLoggingParameters = None):
         """
         Trains the network with gradient descent with the given training set and the corresponding output and
         applies the trained model to the network.
         
         :param X:           The training set with which the network is trained
         :param y:           The training set's output
-        :param nn_params:   The parameters to be used for the training
+        :param Optimizer:   The Optimizer to be used to optimize the cost function
+        :param gd_params:   The parameters to be used for the training
         :return:            None
         """
         weights, layers = self.parse_model()
 
-        alpha = nn_params.learning_rate
-        batch_size = nn_params.batch_size
-        epochs = nn_params.epochs
-        reg_lambda = nn_params.reg_lambda
-        Optimizer = nn_params.Optimizer
-        log_progress = nn_params.log_progress
+        gd_params = gd_params or GradientDescentParameters()
+        log_params = log_params or GDLoggingParameters()
+
+        gd_params.cost_func = self.cost_function
+        gd_params.gradient_func = self.gradient
 
         # create an instance of GradientDescentOptimizer and optimize the weights
-        optimizer = Optimizer(batch_size=batch_size)
+        optimizer = Optimizer()
 
-        gd_parameters = GradientDescentParameters()
-        gd_parameters.epochs = epochs
-        gd_parameters.learning_rate = alpha
-        gd_parameters.reg_lambda = reg_lambda
-        gd_parameters.cost_func = self.cost_function
-        gd_parameters.gradient_func = self.gradient
+        log_handler = LogHandler(log_params)
 
-        log_parameters = GDLoggingParameters()
-        log_parameters.log_progress = log_progress
-
-        log_handler = LogHandler(log_parameters)
-
-        optimizer.train(weights, X, y, gd_parameters, log_handler)
+        optimizer.train(weights, X, y, gd_params, log_handler)
 
     # ======== Helper Functions ========
 

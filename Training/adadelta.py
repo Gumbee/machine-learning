@@ -1,20 +1,19 @@
 import numpy as np
 
-from random import randint
 from Training.gradient_descent import GradientDescentOptimizer as GradientDescentOptimizer
-from Training.gradient_descent import GradientDescentParameters as GradientDescentParameters
 from Training.accumulator import Accumulator as Accumulator
 
 
 class AdaDeltaOptimizer(GradientDescentOptimizer):
 
-    def __init__(self, batch=True, batch_size=60, rho=0.95, epsilon=1e-06):
-        GradientDescentOptimizer.__init__(self, batch, batch_size)
+    def __init__(self, rho=0.95, epsilon=1e-06):
+        GradientDescentOptimizer.__init__(self)
         self.grd_accu = Accumulator(rho, True, epsilon)
         self.delta_accu = Accumulator(rho, True, epsilon)
 
     def delta(self, alpha: float, gradients):
         dlt = self.delta_accu.get_rm()
+
         grd = self.grd_accu.get_rm()
 
         if isinstance(gradients, list):

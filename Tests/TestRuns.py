@@ -5,11 +5,10 @@ import Utils.visualizer as Visualizer
 import Training.cost_model as cost_model
 
 from NeuralNetwork.neural_network import NeuralNetwork as NeuralNetwork
-from NeuralNetwork.neural_network import NNTrainingParameters as NNTrainingParameters
 from Training.gradient_descent import GradientDescentOptimizer as GradientDescentOptimizer
 from Training.adadelta import AdaDeltaOptimizer as AdaDeltaOptimizer
-from Training.gradient_descent import GradientDescentParameters as GradientDescentParameters
 from Utils.anomaly_detector import AnomalyDetector as AnomalyDetector
+from parameters import GradientDescentParameters as GradientDescentParameters
 
 
 def get_mean_correct(prediction, y):
@@ -28,18 +27,16 @@ def neural_net_test(Optimizer: callable(GradientDescentOptimizer), batch_size: i
     network.add_hidden_layer(300)
     network.add_output_layer(10)
 
-    nn_params = NNTrainingParameters()
-    nn_params.Optimizer = Optimizer
-    nn_params.learning_rate = 1.5
-    nn_params.batch_size = batch_size
-    nn_params.reg_lambda = 0
-    nn_params.max_iter = 1
-    nn_params.epochs = epochs
+    gd_params = GradientDescentParameters()
+    gd_params.learning_rate = 1.5
+    gd_params.batch_size = batch_size
+    gd_params.reg_lambda = 0
+    gd_params.epochs = epochs
 
     X, y, X_val, y_val, X_test, y_test = DataManager.get_mnist_data()
 
     t = time.time()
-    network.train(X, y, nn_params)
+    network.train(X, y, Optimizer, gd_params)
     t = time.time()-t
     print("\nProcess finished in", '{:6.3f}'.format(t), 'seconds\n')
 
@@ -64,22 +61,21 @@ def nn_optimizer_comparison(OptimizerA: callable(GradientDescentOptimizer), Opti
     network.add_hidden_layer(300)
     network.add_output_layer(10)
 
-    nn_params = NNTrainingParameters()
-    nn_params.Optimizer = OptimizerA
-    nn_params.learning_rate = 1
-    nn_params.batch_size = batch_size
-    nn_params.reg_lambda = 0
-    nn_params.epochs = epochs
+    gd_params = GradientDescentParameters()
+    gd_params.learning_rate = 1
+    gd_params.batch_size = batch_size
+    gd_params.reg_lambda = 0
+    gd_params.epochs = epochs
 
     X, y, X_val, y_val, X_test, y_test = DataManager.get_mnist_data()
 
     print()
-    print(nn_params.Optimizer.__name__, "  -------------------------------------")
+    print(OptimizerA.__name__, "  -------------------------------------")
 
     t = time.time()
 
     init_val = [np.matrix(x) for x in network.model['weights']]
-    network.train(X, y, nn_params)
+    network.train(X, y, OptimizerA, gd_params)
 
     t = time.time()-t
     print("\nProcess finished in", '{:6.3f}'.format(t), 'seconds\n')
@@ -89,14 +85,13 @@ def nn_optimizer_comparison(OptimizerA: callable(GradientDescentOptimizer), Opti
     get_mean_correct(network.predict(X_test), y_test)
 
     network.model['weights'] = init_val
-    nn_params.Optimizer = OptimizerB
 
     print()
-    print(nn_params.Optimizer.__name__, "  -------------------------------------")
+    print(OptimizerB.__name__, "  -------------------------------------")
 
     t = time.time()
 
-    network.train(X, y, nn_params)
+    network.train(X, y, OptimizerB, gd_params)
 
     t = time.time() - t
     print("\nProcess finished in", '{:6.3f}'.format(t), 'seconds\n')
