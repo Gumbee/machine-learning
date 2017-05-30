@@ -4,7 +4,8 @@ import NeuralNetwork.activations as Activations
 from Training.gradient_descent import GradientDescentOptimizer as GradientDescentOptimizer
 from Training.adadelta import AdaDeltaOptimizer as AdaDeltaOptimizer
 from Training.gradient_descent import GradientDescentParameters as GradientDescentParameters
-from Training.gradient_descent import LoggingParameters as LoggingParameters
+from Logging.logger import LogHandler as LogHandler
+from Logging.logger import GDLoggingParameters as GDLoggingParameters
 
 
 def ravel(weights: list):
@@ -277,18 +278,21 @@ class NeuralNetwork(object):
         log_progress = nn_params.log_progress
 
         # create an instance of GradientDescentOptimizer and optimize the weights
-        optimizer = Optimizer(batch_size=batch_size, epochs=epochs)
+        optimizer = Optimizer(batch_size=batch_size)
 
         gd_parameters = GradientDescentParameters()
+        gd_parameters.epochs = epochs
         gd_parameters.learning_rate = alpha
         gd_parameters.reg_lambda = reg_lambda
         gd_parameters.cost_func = self.cost_function
         gd_parameters.gradient_func = self.gradient
 
-        log_parameters = LoggingParameters()
+        log_parameters = GDLoggingParameters()
         log_parameters.log_progress = log_progress
 
-        optimizer.train(weights, X, y, gd_parameters, log_parameters)
+        log_handler = LogHandler(log_parameters)
+
+        optimizer.train(weights, X, y, gd_parameters, log_handler)
 
     # ======== Helper Functions ========
 

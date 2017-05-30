@@ -1,9 +1,7 @@
 import numpy as np
-import time
 
-from os import path as os_path
-from os import makedirs as os_makedirs
-from definitions import ROOT_DIR
+from Logging.logger import LogHandler as LogHandler
+from Logging.logger import GDLoggingParameters as GDLoggingParameters
 
 
 class GradientDescentParameters(object):
@@ -20,6 +18,7 @@ class GradientDescentParameters(object):
                         and the current iteration number as parameters. Additional parameters can be specified via callback_args
     callback_args:      (optional) Additional parameters that should be passed to the callback function
     """
+    epochs = 10
     learning_rate = 0.1
     reg_lambda = 1.
     cost_func = None
@@ -29,29 +28,13 @@ class GradientDescentParameters(object):
     callback_args = {}
 
 
-class LoggingParameters(object):
-    """
-    Contains all necessary settings for the gradient descent algorithm to know how to log the progress.
-    """
-    log_progress = True
-    num_cost_evaluations = 50
-    cost_eval_use_subset = True
-    cost_eval_subset_size = 5000
-    log_file_name = 'gd_log_'
-
-    def __init__(self):
-        self.log_file_name = 'gd_log_' + time.strftime("%Y%m%d-%H%M%S")
-
-
-
 class GradientDescentOptimizer(object):
 
-    def __init__(self, batch=True, batch_size: int = 60, epochs=5):
+    def __init__(self, batch=True, batch_size: int = 60):
         self.batch = batch
         self.batch_size = batch_size
-        self.epochs = epochs
 
-    def train(self, init_theta, X: np.matrix, y: np.matrix, gd_parameters: GradientDescentParameters, log_parameters: LoggingParameters = None):
+    def train(self, init_theta, X: np.matrix, y: np.matrix, gd_parameters: GradientDescentParameters, log_handler: LogHandler = None):
         """
         Trains the parameters in init_theta to minimize the provided cost function.
         
@@ -59,14 +42,15 @@ class GradientDescentOptimizer(object):
         :param X:               The training set
         :param y:               The training set's corresponding output
         :param gd_parameters:   The parameters with which gradient descent should be run
-        :param log_parameters:  The parameters which specify how the progress should be logged
+        :param log_handler:     The LogHandler instance which handles all the logging
         :return:                None
         """
         print('\nTraining Parameters...')
 
-        if log_parameters is None:
-            log_parameters = LoggingParameters()
+        log_parameters = log_handler.gd_log_parameters or GDLoggingParameters()
 
+        # get relevant gradient descent parameters
+        epochs = gd_parameters.epochs
         alpha = gd_parameters.learning_rate
         cost_func = gd_parameters.cost_func
         gradient_func = gd_parameters.gradient_func
@@ -75,57 +59,68 @@ class GradientDescentOptimizer(object):
         callback = gd_parameters.callback
         callback_args = gd_parameters.callback_args
 
+        # get relevant logging parameters
         log_progress = log_parameters.log_progress
         num_cost_eval = log_parameters.num_cost_evaluations
         cost_eval_use_subset = log_parameters.cost_eval_use_subset
         cost_eval_subset_size = log_parameters.cost_eval_subset_size
         log_file_name = log_parameters.log_file_name
 
+        # remember with which error rate we started
         initial_error = gd_parameters.cost_func(init_theta, X, y, reg_lambda)
 
         # keeps track of how many entries we've already printed
-        entry_num = 1
+        entry_num = 0
         # keep track of the previous iteration's error so we can calculate the relative change
         prev_cst = initial_error
         # keep track of how often we didn't change the cost by applying a gradient descent step
 
         m, _ = X.shape
 
+        # only print the table if we want to log the progress
         if log_progress:
             self.print_table_header('P', 'EP', 'COST', 'CHNG', 'ASCL')
             self.print_table_entry(0, 0, initial_error, initial_error, 1.00)
+            log_handler.write_gd_progress_to_file(0, 1, initial_error, initial_error, file_name=log_file_name)
 
         self.prepare_variables(init_theta)
 
         idx = np.random.permutation(m)
 
-        for i in range(0, self.epochs):
+        for i in range(0, epochs):
 
             # train all the batches
             for x in range(0, m, self.batch_size):
+                # determine at which index the current batch ends
                 end = min(x+self.batch_size, m-1)
+
                 # calculate gradients
                 gradients = gradient_func(init_theta, X[idx[x:end], :], y[idx[x:end], :], reg_lambda, **func_args)
 
+                # perform pre-update calculations if necessary
                 self.pre_update(gradients)
 
+                # get the values by which we change our parameters
                 delta = self.delta(alpha, gradients)
 
-                # update weights with gradients
-                # if x0 is a list, then we apply gradient descent for each item in the list
+                # update weights with our delta values
+                # if init_theta is a list, then we apply gradient descent for each item in the list (e.g Neural Networks)
                 if isinstance(init_theta, list):
                     for e in range(0, len(init_theta)):
                         init_theta[e] -= delta[e]
                 else:
                     init_theta -= delta
 
+                # perform post-update calculations if necessary
                 self.post_update(delta)
 
                 # only log the progress and reevaluate the cost every other iteration
                 if log_progress and x/self.batch_size % int(max((m/self.batch_size)/num_cost_eval, 1)) == 0:
-                    if cost_eval_use_subset:
+                    if cost_eval_use_subset and cost_eval_subset_size < m:
+                        # if we only want to use a subset of the total training set to determine the cost value then
+                        # we shuffle the indices of the training set so that we determine the cost with random entries
+                        # of the training set
                         cst_idx = np.random.permutation(m)
-                        cost_eval_subset_size = min(cost_eval_subset_size, m)
                         cst_idx = cst_idx[0:cost_eval_subset_size]
 
                         # reevaluate cost function
@@ -137,9 +132,12 @@ class GradientDescentOptimizer(object):
                     rel_chng = cost - prev_cst
                     # update previous cost to current cost
                     prev_cst = cost
-                    self.print_table_entry(entry_num, i + 1, cost, rel_chng, 1.0)
-                    self.write_progress_to_file(entry_num, i + 1, cost, rel_chng, log_file_name)
+                    # update the entry number
                     entry_num += 1
+
+                    # log progress
+                    self.print_table_entry(entry_num, i + 1, cost, rel_chng, 1.0)
+                    log_handler.write_gd_progress_to_file(entry_num, i + 1, cost, rel_chng, file_name=log_file_name)
 
                 if callback is not None:
                     callback(init_theta, X, i, **callback_args)
@@ -254,13 +252,4 @@ class GradientDescentOptimizer(object):
               '{:>15.6e}'.format(Third), '{:>1s}'.format('|'), '{:>15.6e}'.format(Fourth), '{:>1s}'.format('|'),
               '{:>10.3f}'.format(Fifth), '{:>1s}'.format('|'), '\033[0m')
 
-    @staticmethod
-    def write_progress_to_file(iteration: int, epoch: int, cost: float, rel_chng: float, file_name: str):
-        path = os_path.join(ROOT_DIR, 'Logs/' + file_name)
-
-        if not os_path.exists(os_path.dirname(path)):
-            os_makedirs(os_path.dirname(path))
-
-        log_file = open(path, 'a')
-        print(iteration, epoch, cost, rel_chng, file=log_file)
 

@@ -8,8 +8,8 @@ from Training.accumulator import Accumulator as Accumulator
 
 class AdaDeltaOptimizer(GradientDescentOptimizer):
 
-    def __init__(self, batch=True, batch_size=60, epochs=5, rho=0.95, epsilon=1e-06):
-        GradientDescentOptimizer.__init__(self, batch, batch_size, epochs)
+    def __init__(self, batch=True, batch_size=60, rho=0.95, epsilon=1e-06):
+        GradientDescentOptimizer.__init__(self, batch, batch_size)
         self.grd_accu = Accumulator(rho, True, epsilon)
         self.delta_accu = Accumulator(rho, True, epsilon)
 
