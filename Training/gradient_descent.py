@@ -20,6 +20,8 @@ class GradientDescentOptimizer(object):
         """
         print('\nTraining Parameters...')
 
+        log_handler = log_handler or LogHandler()
+
         # get relevant gradient descent parameters
         epochs = gd_parameters.epochs
         batch_size = gd_parameters.batch_size
@@ -36,7 +38,7 @@ class GradientDescentOptimizer(object):
 
         m, _ = X.shape
 
-        log_handler.log_gd_entry(initial_error)
+        session_id = log_handler.open_gd_session(initial_error)
 
         self.prepare_variables(init_theta)
 
@@ -69,7 +71,7 @@ class GradientDescentOptimizer(object):
                 # perform post-update calculations if necessary
                 self.post_update(delta)
 
-                log_handler.log_gd_progress(i, x, batch_size, init_theta, X, y, gd_parameters)
+                log_handler.log_gd_progress(session_id, i, x, init_theta, X, y, gd_parameters)
 
                 if callback is not None:
                     callback(init_theta, X, i, **callback_args)
@@ -77,6 +79,8 @@ class GradientDescentOptimizer(object):
         print('\033[91m', '\n{:<15s}'.format('Initial Error:'), '{:5.6e}'.format(initial_error),
               '\n{:<15s}'.format('New Error:'),
               '{:>5.6e}'.format(cost_func(init_theta, X, y, reg_lambda, **func_args)), '\033[0m')
+
+        log_handler.close_gd_session()
 
     def delta(self, alpha: float, gradients):
         if isinstance(gradients, list):

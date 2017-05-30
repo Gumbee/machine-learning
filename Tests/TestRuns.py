@@ -110,11 +110,13 @@ def linear_regression_test(Optimizer: callable(GradientDescentOptimizer) = Gradi
     Visualizer.plt.scatter(np.ravel(X[0:, 0].T), np.ravel(y.T), s=12)
     Visualizer.plt.show()
 
-    optimizer = Optimizer(epochs=50, batch_size=2000)
+    optimizer = Optimizer()
 
     # set gradient descent parameters
     gd_parameters = GradientDescentParameters()
     gd_parameters.learning_rate = 3e-17
+    gd_parameters.epochs = 50
+    gd_parameters.batch_size = 1000
     gd_parameters.reg_lambda = 0
     gd_parameters.cost_func = cost_model.sum_of_squares
     gd_parameters.gradient_func = cost_model.sum_of_squares_gradient
