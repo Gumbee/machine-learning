@@ -247,6 +247,7 @@ class NeuralNetwork(object):
         :param y:           The training set's output
         :param Optimizer:   The Optimizer to be used to optimize the cost function
         :param gd_params:   The parameters to be used for the training
+        :param log_params:  The parameters to be used for the logging
         :return:            None
         """
         weights, layers = self.parse_model()

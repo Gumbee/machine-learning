@@ -2,6 +2,7 @@ from os import makedirs as os_makedirs
 from os import path as os_path
 
 import numpy as np
+import pickle
 import uuid
 
 from definitions import ROOT_DIR
@@ -78,20 +79,19 @@ class LogHandler(object):
 
     def close_gd_session(self):
         print(self.log_dict)
+        self.write_gd_progress_to_file()
 
     def add_gd_entry(self, session_id: str, entry_num: int, epoch_num: int, cost: float, rel_chng: float):
         self.log_dict['training_sessions'][session_id].append({'entry_num': entry_num, 'epoch_num': epoch_num, 'cost': cost, 'rel_chng': rel_chng})
-        pass
 
-    @staticmethod
-    def write_gd_progress_to_file(iteration: int, epoch: int, cost: float, rel_chng: float, file_name: str):
-        path = os_path.join(ROOT_DIR, 'Logs/' + file_name)
+    def write_gd_progress_to_file(self):
+        path = os_path.join(ROOT_DIR, 'Logs/' + self.gd_log_parameters.log_file_name)
 
         if not os_path.exists(os_path.dirname(path)):
             os_makedirs(os_path.dirname(path))
 
-        with open(path, 'a') as log_file:
-            print(iteration, epoch, cost, rel_chng, file=log_file)
+        with open(path, 'wb') as log_file:
+            pickle.dump(self.log_dict, log_file)
 
     # ================= Util Functions =================
 
