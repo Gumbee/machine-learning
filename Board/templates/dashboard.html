@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Dashboard</title>
+</head>
+<body>
+{% if not log == [] %}
+
+    {% for log_file in log %}
+        <h2>New Log</h2>
+        {% for key, value in log_file['training_sessions'].items() %}
+            <h4>Training Session: {{key}}</h4>
+            {% for entry in value %}
+                {{entry['entry_num']}} : {{entry['cost']}}<br/>
+            {% endfor %}
+        {% endfor %}
+    {% endfor %}
+
+{% else %}
+  <h1>Hello, World!</h1>
+{% endif %}
+</body>
+</html>

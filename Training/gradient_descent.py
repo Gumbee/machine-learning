@@ -71,7 +71,7 @@ class GradientDescentOptimizer(object):
                 # perform post-update calculations if necessary
                 self.post_update(delta)
 
-                log_handler.log_gd_progress(session_id, i, x, init_theta, X, y, gd_parameters)
+                log_handler.log_gd_progress(session_id, epoch_num=i, batch_num=x, init_theta=init_theta, X=X, y=y, gd_parameters=gd_parameters)
 
                 if callback is not None:
                     callback(init_theta, X, i, **callback_args)

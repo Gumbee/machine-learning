@@ -36,7 +36,6 @@ class LogHandler(object):
         num_cost_eval = self.gd_log_parameters.num_cost_evaluations
         cost_eval_use_subset = self.gd_log_parameters.cost_eval_use_subset
         cost_eval_subset_size = self.gd_log_parameters.cost_eval_subset_size
-        log_file_name = self.gd_log_parameters.log_file_name
 
         m, _ = X.shape
 
@@ -71,11 +70,13 @@ class LogHandler(object):
             self.print_table_header('P', 'EP', 'COST', 'CHNG', 'ASCL')
             self.print_table_entry(0, 1, initial_error, initial_error, 1.00)
 
-        session_id = uuid.uuid4().hex
-        self.log_dict['training_sessions'][session_id] = []
-        self.add_gd_entry(session_id, 0, 1, initial_error, initial_error)
+            session_id = uuid.uuid4().hex
+            self.log_dict['training_sessions'][session_id] = []
+            self.add_gd_entry(session_id, 0, 1, initial_error, initial_error)
 
-        return session_id
+            return session_id
+        else:
+            return -1
 
     def close_gd_session(self):
         print(self.log_dict)
@@ -85,7 +86,7 @@ class LogHandler(object):
         self.log_dict['training_sessions'][session_id].append({'entry_num': entry_num, 'epoch_num': epoch_num, 'cost': cost, 'rel_chng': rel_chng})
 
     def write_gd_progress_to_file(self):
-        path = os_path.join(ROOT_DIR, 'Logs/' + self.gd_log_parameters.log_file_name)
+        path = os_path.join(ROOT_DIR, 'Logs/' + self.gd_log_parameters.log_file_name + '.log')
 
         if not os_path.exists(os_path.dirname(path)):
             os_makedirs(os_path.dirname(path))
