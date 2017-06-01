@@ -1,0 +1,130 @@
+body {
+}
+
+/* ----------- Navbar/Sidebar Stuff ----------- */
+
+.wrapper {
+    width: 100%;
+    min-height: 800px;
+    display: flex;
+}
+
+nav {
+    background-color: #d7dde4;
+    padding-left: 30px;
+    padding-right: 30px;
+    height: 75px;
+    line-height: 75px;
+}
+
+nav .brand-logo, nav ul a {
+    color: #6E7C8A;
+}
+
+.sidebar {
+    flex: 1;
+    min-width: 250px;
+    min-height:100%;
+    float: left;
+    background-color: #4f5f6f;
+    box-shadow: 0px 0px 2px 1px rgba(0,0,0,0.15);
+    z-index: 2;
+}
+
+.sidebar .logo {
+    margin-top: 0px;
+    width: 100%;
+    text-align: center;
+    padding: 15px 5px;
+    background-color: #303B45;
+    font-size: 30px;
+    font-weight: 300;
+    color: #8EE036;
+}
+
+.sidebar ul {
+    margin-top: 0px;
+}
+
+.sidebar ul li {
+    width: 100%;
+    text-align: center;
+    padding: 15px 5px;
+}
+
+.sidebar ul li:hover {
+    background-color: #3B4854;
+}
+
+.sidebar ul li a {
+    font-weight: 300;
+    color: #C4C4C4;
+}
+
+.sidebar ul li:hover a {
+    color: #DEDEDE;
+}
+
+.sidebar ul li[active] a {
+    color: #EEE;
+}
+
+.sidebar ul li[active] {
+    background-color: #85CE36;
+}
+
+.z-depth-1, nav, .card-panel, .card, .toast, .btn, .btn-large, .btn-floating, .dropdown-content, .collapsible, .side-nav {
+    /*box-shadow: 0 2px 2px 0 rgba(0, 0, 0, 0.08), 0 1px 5px 0 rgba(0, 0, 0, 0.05), 0 3px 1px -2px rgba(0, 0, 0, 0.10);*/
+    box-shadow: none;
+}
+
+nav {
+    z-index: 2;
+}
+
+nav[shadow] {
+    box-shadow: 0px 3px 2px 1px rgba(0,0,0,0.5);
+    z-index: 3;
+}
+
+/* ----------- Breadcrumb Stuff ----------- */
+
+.nav-breadcumb {
+    /*padding-top: 5px;*/
+    height: 30px;
+    line-height: 30px;
+    background-color: #F9F9F9;
+}
+
+.breadcrumb, .breadcrumb::before {
+    color: #8D969E;
+}
+
+.breadcrumb:last-child {
+    color: #6E7C8A;
+}
+
+.breadcrumb:before {
+    color: #bbb;
+    font-size: 20px;
+    margin: 0 5px 0 3px;
+}
+
+.nav-breadcumb .breadcrumb {
+    font-size: 13px;
+}
+
+/* ----------- Content Stuff ----------- */
+
+.main-content {
+    flex: 5;
+    height: 100%;
+}
+
+.view-content {
+    width: 100%;
+    height: 100%;
+    padding-left: 20px;
+    padding-right: 20px;
+    color: #4f5f6f;
+}
