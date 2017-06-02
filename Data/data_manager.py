@@ -2,6 +2,8 @@ import numpy as np
 import pickle as pickle
 import matplotlib.image as mpimg
 
+from definitions import ROOT_DIR
+
 
 def get_handwriting_data(training_ratio=0.6, validation_ratio=0.2):
     """
@@ -16,12 +18,12 @@ def get_handwriting_data(training_ratio=0.6, validation_ratio=0.2):
     input_data = []
     output_data = []
 
-    with open('../Data/DataFiles/handwritingData.txt') as data:
+    with open(ROOT_DIR + '/Data/DataFiles/handwritingData.txt') as data:
         for line in data:
             current_line = line.split(',')
             input_data.append(current_line)
 
-    with open('../Data/DataFiles/handwritingDataResult.txt') as data:
+    with open(ROOT_DIR + '/Data/DataFiles/handwritingDataResult.txt') as data:
         for line in data:
             number_vec = np.zeros(10)
             number_vec[int(line) - 1] = 1
@@ -72,7 +74,7 @@ def get_mnist_data():
     """
     # Data can be downloaded here: http://deeplearning.net/data/mnist/mnist.pkl.gz
 
-    file = open('../Data/DataFiles/mnist.pkl', 'rb')
+    file = open(ROOT_DIR + '/Data/DataFiles/mnist.pkl', 'rb')
     X, X_val, X_test = pickle.load(file, encoding='latin1')
     file.close()
 

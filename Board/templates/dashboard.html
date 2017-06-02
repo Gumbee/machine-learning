@@ -3,17 +3,63 @@
 {% block content %}
 
 {% if not log == [] and 1==1 %}
-    {% for log_file in log %}
-        <h2>New Log</h2>
-        {% for training_session, training_log in log_file['training_sessions'].items() %}
-            <h4>Training Session: {{training_session}}</h4>
-            {% for entry in training_log %}
-                {{entry['entry_num']}} : {{entry['cost']}}<br/>
-            {% endfor %}
-        {% endfor %}
-    {% endfor %}
+    <div style="margin-top:20px;width: 48%;float:left;display: block;">
+        <div class="ct-chart ct-golden-section" id="chart1"></div>
+    </div>
+    <div style="margin-top:20px;width: 48%;display: block;float:right;">
+        <div class="ct-chart ct-golden-section" id="chart2"></div>
+    </div>
 
 {% else %}
-  <h4>Hello, World!</h4>
+  <h4>No Data!</h4>
 {% endif %}
+{% endblock %}
+
+
+{% block scripts %}
+<script>
+    var data = {{ log|safe }};
+    var elem = first(data[0]['training_sessions'])[0];
+    var elem1 = first(data[0]['training_sessions'])[1];
+
+    var values = data[0]['training_sessions'][elem]['costs'];
+    var x_axis = data[0]['training_sessions'][elem]['entries'];
+
+
+    var values1 = data[0]['training_sessions'][elem1]['costs'];
+    var x_axis1 = data[0]['training_sessions'][elem1]['entries'];
+
+    var options = {
+        fullWidth: true,
+        chartPadding: {
+            right: 40
+        },
+        axisX: {
+            labelInterpolationFnc: function (value, index) {
+                return index % 10 === 0 ? value : null;
+            },
+        },
+    };
+
+    new Chartist.Line('#chart1', {
+        labels: x_axis,
+        series: [
+                    values
+                ]
+        }, options);
+
+    new Chartist.Line('#chart2', {
+        labels: x_axis1,
+        series: [
+                    values1
+                ]
+        }, options);
+
+    function first(obj){
+        var elements = []
+        for(var a in obj) elements.push(a);
+
+        return elements;
+    }
+</script>
 {% endblock %}

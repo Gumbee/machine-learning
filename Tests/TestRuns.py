@@ -7,7 +7,9 @@ import Training.cost_model as cost_model
 from NeuralNetwork.neural_network import NeuralNetwork as NeuralNetwork
 from Training.gradient_descent import GradientDescentOptimizer as GradientDescentOptimizer
 from Training.adadelta import AdaDeltaOptimizer as AdaDeltaOptimizer
+from Logging.logger import LogHandler as LogHandler
 from Utils.anomaly_detector import AnomalyDetector as AnomalyDetector
+
 from parameters import GradientDescentParameters as GradientDescentParameters
 
 
@@ -67,6 +69,8 @@ def nn_optimizer_comparison(OptimizerA: callable(GradientDescentOptimizer), Opti
     gd_params.reg_lambda = 0
     gd_params.epochs = epochs
 
+    log_handler = LogHandler()
+
     X, y, X_val, y_val, X_test, y_test = DataManager.get_mnist_data()
 
     print()
@@ -75,7 +79,7 @@ def nn_optimizer_comparison(OptimizerA: callable(GradientDescentOptimizer), Opti
     t = time.time()
 
     init_val = [np.matrix(x) for x in network.model['weights']]
-    network.train(X, y, OptimizerA, gd_params)
+    network.train(X, y, OptimizerA, gd_params, log_handler)
 
     t = time.time()-t
     print("\nProcess finished in", '{:6.3f}'.format(t), 'seconds\n')
@@ -91,7 +95,7 @@ def nn_optimizer_comparison(OptimizerA: callable(GradientDescentOptimizer), Opti
 
     t = time.time()
 
-    network.train(X, y, OptimizerB, gd_params)
+    network.train(X, y, OptimizerB, gd_params, log_handler)
 
     t = time.time() - t
     print("\nProcess finished in", '{:6.3f}'.format(t), 'seconds\n')

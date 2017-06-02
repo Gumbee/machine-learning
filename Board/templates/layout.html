@@ -4,10 +4,13 @@
     <meta charset="UTF-8">
     <!-- Compiled and minified CSS -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/materialize/0.98.2/css/materialize.min.css">
-    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <link rel="stylesheet" href="//cdn.jsdelivr.net/chartist.js/latest/chartist.min.css">
     <!-- Compiled and minified JavaScript -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/chartist.js/latest/chartist.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/0.98.2/js/materialize.min.js"></script>
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
 
     <title>{% block title %}{% endblock %}</title>
 </head>
@@ -15,11 +18,11 @@
 <div class="wrapper">
     <div class="sidebar">
         <div class="logo">
-            ML Board
+            <img src="{{ url_for('static', filename='img/logo.png') }}" height="40" /> ML Board
         </div>
         <ul>
-            <li><a href="#">Home<a/></li>
-            <li active><a href="#">Settings<a/></li>
+            <li active><a href="#"><i class="material-icons md-18">home</i>Home</a></li>
+            <li><a href="#"><i class="material-icons md-18">settings</i>Settings</a></li>
         </ul>
     </div>
     <div class="main-content">
@@ -36,16 +39,19 @@
         </nav>
         <nav class="nav-breadcumb">
             <div class="col s12">
-                <a href="#!" class="breadcrumb">Neural Network</a>
-                <a href="#!" class="breadcrumb">Models</a>
-                <a href="#!" class="breadcrumb">Training Session</a>
+                <a href="#" class="breadcrumb">Neural Network</a>
+                <a href="#" class="breadcrumb">Models</a>
+                <a href="#" class="breadcrumb">Training Session</a>
             </div>
         </nav>
         <div class="view-content">
             {% block content %}
             {% endblock %}
+            </div>
         </div>
     </div>
 </div>
+{% block scripts %}
+{% endblock %}
 </body>
 </html>

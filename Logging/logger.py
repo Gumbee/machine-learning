@@ -20,9 +20,6 @@ class LogHandler(object):
 
     def __init__(self, gd_log_parameters: GDLoggingParameters = None):
         self.gd_log_parameters = gd_log_parameters or GDLoggingParameters()
-        self.rel_chng = 0.0
-        self.prev_cst = 0.0
-        self.gd_entry_num = 0
 
     def log_gd_progress(self, session_id: str, epoch_num: int, batch_num: int, init_theta: np.matrix, X: np.matrix, y: np.matrix, gd_parameters: GradientDescentParameters):
         # get relevant gradient descent parameters
@@ -54,15 +51,18 @@ class LogHandler(object):
                 cost = cost_func(init_theta, X, y, reg_lambda, **func_args)
 
             # get relative change of the cost function
-            self.rel_chng = cost - self.prev_cst
+                self.log_dict['training_sessions'][session_id]['rel_chng'] = cost - self.log_dict['training_sessions'][session_id]['prev_cst']
             # update previous cost to current cost
-            self.prev_cst = cost
+            self.log_dict['training_sessions'][session_id]['prev_cst'] = cost
             # update the entry number
-            self.gd_entry_num += 1
+            self.log_dict['training_sessions'][session_id]['entry_num'] += 1
+
+            entry_num: int = self.log_dict['training_sessions'][session_id]['entry_num']
+            rel_chng: int = self.log_dict['training_sessions'][session_id]['rel_chng']
 
             # log progress
-            self.print_table_entry(self.gd_entry_num, epoch_num + 1, cost, self.rel_chng, 1.0)
-            self.add_gd_entry(session_id, self.gd_entry_num, epoch_num + 1, cost, self.rel_chng)
+            self.print_table_entry(entry_num, epoch_num + 1, cost, rel_chng, 1.0)
+            self.add_gd_entry(session_id, entry_num, epoch_num + 1, cost, rel_chng)
 
     def open_gd_session(self, initial_error: float):
         # only print the table if we want to log the progress
@@ -71,7 +71,7 @@ class LogHandler(object):
             self.print_table_entry(0, 1, initial_error, initial_error, 1.00)
 
             session_id = uuid.uuid4().hex
-            self.log_dict['training_sessions'][session_id] = []
+            self.log_dict['training_sessions'][session_id] = {'entries': [], 'epochs': [], 'costs': [], 'rel_chngs': [], 'entry_num': 0, 'rel_chng': 0, 'prev_cst': 0}
             self.add_gd_entry(session_id, 0, 1, initial_error, initial_error)
 
             return session_id
@@ -83,7 +83,10 @@ class LogHandler(object):
         self.write_gd_progress_to_file()
 
     def add_gd_entry(self, session_id: str, entry_num: int, epoch_num: int, cost: float, rel_chng: float):
-        self.log_dict['training_sessions'][session_id].append({'entry_num': entry_num, 'epoch_num': epoch_num, 'cost': cost, 'rel_chng': rel_chng})
+        self.log_dict['training_sessions'][session_id]['entries'].append(entry_num)
+        self.log_dict['training_sessions'][session_id]['epochs'].append(epoch_num)
+        self.log_dict['training_sessions'][session_id]['costs'].append(cost)
+        self.log_dict['training_sessions'][session_id]['rel_chngs'].append(rel_chng)
 
     def write_gd_progress_to_file(self):
         path = os_path.join(ROOT_DIR, 'Logs/' + self.gd_log_parameters.log_file_name + '.log')

@@ -238,7 +238,7 @@ class NeuralNetwork(object):
 
         return gradients
 
-    def train(self, X: np.matrix, y: np.matrix, Optimizer: callable(GradientDescentOptimizer), gd_params: GradientDescentParameters = None, log_params: GDLoggingParameters = None):
+    def train(self, X: np.matrix, y: np.matrix, Optimizer: callable(GradientDescentOptimizer), gd_params: GradientDescentParameters = None, log_handler: LogHandler = None):
         """
         Trains the network with gradient descent with the given training set and the corresponding output and
         applies the trained model to the network.
@@ -253,7 +253,6 @@ class NeuralNetwork(object):
         weights, layers = self.parse_model()
 
         gd_params = gd_params or GradientDescentParameters()
-        log_params = log_params or GDLoggingParameters()
 
         gd_params.cost_func = self.cost_function
         gd_params.gradient_func = self.gradient
@@ -261,7 +260,7 @@ class NeuralNetwork(object):
         # create an instance of GradientDescentOptimizer and optimize the weights
         optimizer = Optimizer()
 
-        log_handler = LogHandler(log_params)
+        log_handler = log_handler or LogHandler()
 
         optimizer.train(weights, X, y, gd_params, log_handler)
 
