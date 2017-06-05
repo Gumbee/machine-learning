@@ -1,4 +1,5 @@
 body {
+    font-weight: 300;
 }
 
 /* ----------- Navbar/Sidebar Stuff ----------- */
@@ -11,8 +12,8 @@ body {
 
 nav {
     background-color: #d7dde4;
-    padding-left: 30px;
-    padding-right: 30px;
+    padding-left: 20px;
+    padding-right: 20px;
     height: 70px;
     line-height: 70px;
     font-weight: 300;
@@ -30,6 +31,7 @@ nav .brand-logo, nav ul a {
 
 .sidebar {
     flex: 1;
+    position: fixed;
     min-width: 250px;
     min-height:100%;
     float: left;
@@ -161,6 +163,7 @@ nav .brand-logo, nav ul a {
 .main-content {
     flex: 6;
     height: 100%;
+    padding-left: 250px;
 }
 
 .view-content {
@@ -168,5 +171,80 @@ nav .brand-logo, nav ul a {
     height: 100%;
     padding-left: 20px;
     padding-right: 20px;
+    padding-top: 10px;
     color: #4f5f6f;
+}
+
+.neural-net-card {
+    width: 100%;
+    height: auto;
+    background-color: #546e7a;
+    position: relative;
+    /*box-shadow: 0px 2px 2px 0px rgba(0,0,0,0.41);*/
+}
+
+.neural-net-card .logo {
+    width: 120px;
+    height: auto;
+    background-color: #6E7C8A;
+    float: left;
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    white-space: nowrap;
+}
+
+.neural-net-card .logo .helper {
+    height: 100%;
+    display: inline-block;
+    vertical-align: middle;
+}
+
+.neural-net-card .logo img {
+    vertical-align: middle;
+    margin-left: 10px;
+}
+
+.neural-net-card .content {
+    height: 100%;
+    padding: 10px 10px 10px 140px;
+    color: #DDD;
+    overflow: scroll;
+}
+
+.neural-net-card .content .card-title {
+    font-size: 1.2rem;
+    color: #CCC;
+}
+
+.neural-net-card .content .neural-net-stats span {
+    font-size: 1.6rem;
+    padding-right: 5px;
+    text-transform: uppercase;
+}
+
+.neural-net-card .content .neural-net-stats span .value {
+    font-size: 1.4rem;
+    color: #ccc;
+}
+
+.view-content .title {
+    font-size: 2.0rem;
+}
+
+.view-content .small-title {
+    font-size: 0.8rem;
+    margin-left: 5px;
+    color: #6E7C8A;
+}
+
+
+/* ----------- Chart Stuff ----------- */
+
+.ct-point {
+    stroke-width: 5px !important;
+}
+
+.ct-line {
+    stroke-width: 3px !important;
 }

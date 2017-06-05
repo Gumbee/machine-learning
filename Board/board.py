@@ -1,4 +1,5 @@
 import pickle
+import numpy as np
 
 from flask import Flask
 from flask import render_template
@@ -13,10 +14,33 @@ app = Flask(__name__)
 
 
 @app.route("/")
+@app.route("/home")
 def dashboard():
-    log_dicts = []
+    return render_template('dashboard.html')
 
-    path = os_path.join(ROOT_DIR, 'Logs/')
+
+@app.route("/nets")
+def nets():
+    neural_nets = get_neural_networks()
+
+    return render_template('nets.html', neural_nets=neural_nets)
+
+
+@app.route("/nets/<net_id>")
+def net_info(net_id):
+    neural_net = get_net_info(net_id)
+
+    np.set_printoptions(threshold=np.nan)
+
+    return render_template('net_info.html', neural_net=neural_net, id=net_id)
+
+
+# Util Functions
+
+def get_neural_networks():
+    neural_nets = []
+
+    path = os_path.join(ROOT_DIR, 'Logs/NeuralNets')
 
     if os_path.exists(path):
         for log_file_name in os_listdir(path):
@@ -24,10 +48,71 @@ def dashboard():
                 file_path = os_path.join(path, log_file_name)
 
                 with open(file_path, 'rb') as log_file:
-                    log_dicts.append(pickle.load(log_file))
+                    log_data = pickle.load(log_file)
+
+                    if log_data['network_info'] not in neural_nets:
+                        neural_nets.append(log_data['network_info'])
+
                     continue
 
-    return render_template('dashboard.html', log=log_dicts)
+    return neural_nets
+
+
+def get_net_info(net_id: str):
+    neural_net = {'trainings': [], 'network_info': []}
+
+    path = os_path.join(ROOT_DIR, 'Logs/NeuralNets')
+
+    if os_path.exists(path):
+        for log_file_name in os_listdir(path):
+            if log_file_name.endswith('.log'):
+                file_path = os_path.join(path, log_file_name)
+
+                with open(file_path, 'rb') as log_file:
+                    log_data = pickle.load(log_file)
+
+                    if log_data['network_info']['id'] == net_id:
+                        if len(neural_net['network_info']) == 0:
+                            neural_net['network_info'] = log_data['network_info']
+
+                            layers = neural_net['network_info']['layers']
+                            # the amount of units to be displayed on the board when approximating the shape of the NN
+                            layer_sizes = [0]*len(layers)
+                            # used to calculate the amount of units to be displayed
+                            layer_ratios = []
+
+                            max_units = layers[0]['units']
+                            max_units_index = 0
+
+                            # calculate the ratios between the layers and find the layer with the most units
+                            for i in range(1, len(layers)):
+                                layer_ratios.append((layers[i]['units']*1.0)/layers[i-1]['units'])
+
+                                if max_units < layers[i]['units']:
+                                    max_units = layers[i]['units']
+                                    max_units_index = i
+
+                            # max amount of units to be displayed on the board
+                            layer_sizes[max_units_index] = min(max_units, 7)
+
+                            # calculate the number of units for every layer left to the layer with the most units
+                            # based on the previously calculated ratios
+                            for i in range(max_units_index-1, -1, -1):
+                                layer_sizes[i] = max(1, int(round(layer_sizes[i+1]*(1.0/layer_ratios[i]))))
+
+                            # calculate the number of units for every layer right to the layer with the most units
+                            # based on the previously calculated ratios
+                            for i in range(max_units_index+1, len(layer_sizes)):
+                                layer_sizes[i] = max(1, int(round(layer_sizes[i-1]*layer_ratios[i-1])))
+
+                            neural_net['network_info']['layer_sizes'] = layer_sizes
+
+                        for training in log_data['training_sessions']:
+                            neural_net['trainings'].append(log_data['training_sessions'][training])
+
+                    continue
+
+    return neural_net
 
 
 @app.context_processor

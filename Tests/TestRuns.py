@@ -23,14 +23,15 @@ def get_mean_correct(prediction, y):
     print('Accuracy:', (num_right / (len(y) * 1.)) * 100)
 
 
-def neural_net_test(Optimizer: callable(GradientDescentOptimizer), batch_size: int = 60, epochs: int = 2, visualize: bool = False):
-    network = NeuralNetwork(784)
-    network.add_hidden_layer(500)
-    network.add_hidden_layer(300)
+def neural_net_test(Optimizer: callable(GradientDescentOptimizer), batch_size: int = 60, epochs: int = 2, visualize: bool = False, network_name: str = None):
+    network = NeuralNetwork(784, name=network_name)
+    network.add_hidden_layer(900)
+    network.add_hidden_layer(900)
+    network.add_hidden_layer(400)
     network.add_output_layer(10)
 
     gd_params = GradientDescentParameters()
-    gd_params.learning_rate = 1.5
+    gd_params.learning_rate = 1
     gd_params.batch_size = batch_size
     gd_params.reg_lambda = 0
     gd_params.epochs = epochs
@@ -38,6 +39,7 @@ def neural_net_test(Optimizer: callable(GradientDescentOptimizer), batch_size: i
     X, y, X_val, y_val, X_test, y_test = DataManager.get_mnist_data()
 
     t = time.time()
+    network.train(X, y, Optimizer, gd_params)
     network.train(X, y, Optimizer, gd_params)
     t = time.time()-t
     print("\nProcess finished in", '{:6.3f}'.format(t), 'seconds\n')

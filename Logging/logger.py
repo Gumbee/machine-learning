@@ -15,11 +15,10 @@ class LogHandler(object):
     class that handles logging.
     
     """
-    gd_log_parameters = None
-    log_dict = {'training_sessions': {}}
 
     def __init__(self, gd_log_parameters: GDLoggingParameters = None):
         self.gd_log_parameters = gd_log_parameters or GDLoggingParameters()
+        self.log_dict = {'training_sessions': {}}
 
     def log_gd_progress(self, session_id: str, epoch_num: int, batch_num: int, init_theta: np.matrix, X: np.matrix, y: np.matrix, gd_parameters: GradientDescentParameters):
         # get relevant gradient descent parameters
@@ -51,7 +50,7 @@ class LogHandler(object):
                 cost = cost_func(init_theta, X, y, reg_lambda, **func_args)
 
             # get relative change of the cost function
-                self.log_dict['training_sessions'][session_id]['rel_chng'] = cost - self.log_dict['training_sessions'][session_id]['prev_cst']
+            self.log_dict['training_sessions'][session_id]['rel_chng'] = cost - self.log_dict['training_sessions'][session_id]['prev_cst']
             # update previous cost to current cost
             self.log_dict['training_sessions'][session_id]['prev_cst'] = cost
             # update the entry number
@@ -88,11 +87,24 @@ class LogHandler(object):
         self.log_dict['training_sessions'][session_id]['costs'].append(cost)
         self.log_dict['training_sessions'][session_id]['rel_chngs'].append(rel_chng)
 
+    def register_network(self, net_id: str, name: str, model):
+        self.log_dict['network_info'] = {}
+        self.log_dict['network_info']['id'] = net_id
+        self.log_dict['network_info']['name'] = name
+        self.log_dict['network_info']['layers'] = [self.get_layer_info(layer) for layer in model['layers']]
+        self.write_gd_progress_to_file()
+
+    @staticmethod
+    def get_layer_info(layer):
+        return {'units': layer.units, 'has_bias': layer.has_bias, 'activation': layer.activation_name}
+
     def write_gd_progress_to_file(self):
         path = os_path.join(ROOT_DIR, 'Logs/' + self.gd_log_parameters.log_file_name + '.log')
 
         if not os_path.exists(os_path.dirname(path)):
             os_makedirs(os_path.dirname(path))
+
+        np.set_printoptions(threshold=np.nan)
 
         with open(path, 'wb') as log_file:
             pickle.dump(self.log_dict, log_file)

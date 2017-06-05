@@ -1,3 +1,4 @@
+import uuid
 import numpy as np
 import NeuralNetwork.activations as Activations
 
@@ -42,7 +43,7 @@ def unravel(vector: np.matrix, layers: list):
 
 class NeuralNetwork(object):
 
-    def __init__(self, input_units=5, EPSILON=0.12):
+    def __init__(self, input_units=5, EPSILON=0.12, name: str = None):
         print('Neural Network has', input_units, 'input units.')
         self.input_units = input_units
         self.has_output = False
@@ -53,6 +54,10 @@ class NeuralNetwork(object):
 
         # EPSILON is used to initialize the random weights matrix
         self.EPSILON = EPSILON
+
+        self.id = uuid.uuid4().hex
+
+        self.name = name or 'Unnamed Neural Net'
 
     # ======== Network Operations ========
 
@@ -261,8 +266,23 @@ class NeuralNetwork(object):
         optimizer = Optimizer()
 
         log_handler = log_handler or LogHandler()
+        log_handler.gd_log_parameters.log_file_name = 'NeuralNets/' + log_handler.gd_log_parameters.log_file_name
+
+        # if the log handler has already registered a (different) network, use a new log handler with the same settings
+        # (but with a different file name)
+        if 'network_info' in log_handler.log_dict and log_handler.log_dict['network_info']['id'] != self.id:
+            new_log_handler = LogHandler()
+            new_log_handler.gd_log_parameters.log_progress = log_handler.gd_log_parameters.log_progress
+            new_log_handler.gd_log_parameters.num_cost_evaluations = log_handler.gd_log_parameters.num_cost_evaluations
+            new_log_handler.gd_log_parameters.cost_eval_use_subset = log_handler.gd_log_parameters.cost_eval_use_subset
+            new_log_handler.gd_log_parameters.cost_eval_subset_size = log_handler.gd_log_parameters.cost_eval_subset_size
+            log_handler = new_log_handler
 
         optimizer.train(weights, X, y, gd_params, log_handler)
+
+        log_handler.register_network(self.id, self.name, self.model)
+
+        print(log_handler.log_dict)
 
     # ======== Helper Functions ========
 
@@ -336,6 +356,7 @@ class NeuralNetwork(object):
         return weights, layers
 
 
+
 class NeuralLayer(object):
     """
     Class that contains necessary information for a neural layer (e.g how many units).
@@ -346,7 +367,7 @@ class NeuralLayer(object):
         self.has_bias = has_bias
         self.layer = np.zeros(units+(has_bias*1))
 
-        self.activator, self.activator_gradient = activator()
+        self.activator, self.activator_gradient, self.activation_name = activator()
 
         # if this layer has a bias, we have to set the first item to 1
         if has_bias:

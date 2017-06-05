@@ -4,7 +4,7 @@ import numpy as np
 
 
 def sigmoid():
-    return sigmoid_activation, sigmoid_gradient
+    return sigmoid_activation, sigmoid_gradient, 'Sigmoid'
 
 
 def sigmoid_activation(z):

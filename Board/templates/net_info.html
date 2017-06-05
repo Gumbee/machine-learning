@@ -1,0 +1,103 @@
+{% extends "layout.html" %}
+{% block title %}Neural Networks{% endblock %}
+
+{% block breadcrumb %}
+    <a href="/nets" class="breadcrumb">Neural Networks</a>
+    <a href="#" class="breadcrumb">Network: {{ neural_net['network_info']['name'] }}</a>
+{% endblock %}
+
+
+{% block content %}
+<div>
+    <span class="title">{{neural_net['network_info']['name']}}</span><span class="small-title">{{ id }}</span>
+</div>
+<div>
+    <svg width="100%" height="380" id="snap">
+
+    </svg>
+</div>
+{% for training in neural_net['trainings'] %}
+    <div style="margin-top:20px;width: 48%;float:left;display: block;">
+        <div class="ct-chart ct-golden-section" id="chart{{ loop.index0 }}"></div>
+    </div>
+{% endfor %}
+{% endblock %}
+
+
+{% block scripts %}
+<script>
+
+    var s = Snap("#snap");
+
+    {% set layer_size = neural_net['network_info']['layers'] | length %}
+    {% for x in range(0, layer_size) %}
+        {% set x_offset = 50 %}
+        {% set y_offset = 60 %}
+        {% set radius = 20 %}
+        {% set distance = 1330.0/layer_size %}
+        {% for y in range(0, neural_net['network_info']['layer_sizes'][x]) %}
+            {% set unit_position_x = x_offset + x*distance %}
+            {% set unit_position_y = y_offset + y*2.5*radius + (1-(neural_net['network_info']['layer_sizes'][x]/6)) * (190-radius-y_offset/2) %}
+
+            {% if x+1 < layer_size %}
+                {% for z in range(0, neural_net['network_info']['layer_sizes'][x+1]) %}
+                    {% set next_unit_position_x = x_offset + (x+1)*distance %}
+                    {% set next_unit_position_y = y_offset + z*2.5*radius + (1-(neural_net['network_info']['layer_sizes'][x+1]/6)) * (190-radius-y_offset/2) %}
+                    s.line({{ unit_position_x }}+{{ radius }}, {{ unit_position_y }}, {{ next_unit_position_x }}-{{ radius }}, {{ next_unit_position_y }}).attr({
+                        stroke: "#888",
+                        strokeWidth: 1,
+                        strokeDasharray: "2 1"
+                    });
+                {% endfor %}
+            {% endif %}
+
+            s.circle({{ unit_position_x }}, {{ unit_position_y }}, {{ radius }}).attr({
+                fill: "#fff",
+                fillOpacity: 0.0,
+                stroke: "#85CE36",
+                strokeWidth: 2
+            });
+        {% endfor %}
+    {% endfor %}
+
+    var True = true;
+    var False = false;
+    var data = {{ neural_net|safe }};
+    console.log(data);
+
+    var options = {
+        fullWidth: true,
+        chartPadding: {
+            right: 40,
+            left: 0
+        },
+        axisX: {
+            labelInterpolationFnc: function (value, index) {
+                return index % 10 === 0 ? value : null;
+            },
+            showGrid: false,
+        },
+        axisY: {
+            labelInterpolationFnc: function (value) {
+                return parseFloat((value * 100) / 100).toFixed(2);
+            },
+        },
+    };
+
+    {% for training in neural_net['trainings'] %}
+        var elem{{ loop.index0 }} = data['trainings'][{{ loop.index0 }}];
+        var values{{ loop.index0 }} = elem{{ loop.index0 }}['costs'];
+        var x_axis{{ loop.index0 }} = elem{{ loop.index0 }}['entries'];
+
+
+        new Chartist.Line('#chart{{ loop.index0 }}', {
+            labels: x_axis{{ loop.index0 }},
+            series: [
+                        values{{ loop.index0 }}
+                    ]
+        }, options);
+    {% endfor %}
+
+
+</script>
+{% endblock %}

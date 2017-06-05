@@ -10,6 +10,7 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
     <script src="https://cdn.jsdelivr.net/chartist.js/latest/chartist.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/0.98.2/js/materialize.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/snap.svg/0.5.1/snap.svg-min.js"></script>
     <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
 
     <title>{% block title %}{% endblock %}</title>
@@ -26,12 +27,12 @@
         </ul>
     </div>
     <div class="main-content">
-        <nav shadow>
+        <nav>
             <div class="nav-wrapper">
                 <a href="#" class="brand-logo">Dashboard</a>
                 <ul id="nav-mobile" class="right hide-on-med-and-down">
                     <li><a href="#">Trainings</a></li>
-                    <li><a href="#">Models</a></li>
+                    <li><a href="/nets">Networks</a></li>
                     <li><a href="#">Optimizers</a></li>
                     <li><a href="#">Overview</a></li>
                 </ul>
@@ -39,9 +40,9 @@
         </nav>
         <nav class="nav-breadcumb">
             <div class="col s12">
-                <a href="#" class="breadcrumb">Neural Network</a>
-                <a href="#" class="breadcrumb">Models</a>
-                <a href="#" class="breadcrumb">Training Session</a>
+                <a href="/" class="breadcrumb">Dashboard</a>
+                {% block breadcrumb %}
+                {% endblock %}
             </div>
         </nav>
         <div class="view-content">
