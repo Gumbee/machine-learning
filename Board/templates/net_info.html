@@ -9,18 +9,34 @@
 
 {% block content %}
 <div>
-    <span class="title">{{neural_net['network_info']['name']}}</span><span class="small-title">{{ id }}</span>
+    <span class="title">{{neural_net['network_info']['name']}}</span><span class="small-title">{{ net_id }}</span>
 </div>
 <div>
-    <svg width="100%" height="380" id="snap">
+    <svg class="net-approximation-svg" width="100%" height="380" id="snap">
 
     </svg>
 </div>
+    <div class="row">
 {% for training in neural_net['trainings'] %}
-    <div style="margin-top:20px;width: 48%;float:left;display: block;">
-        <div class="ct-chart ct-golden-section" id="chart{{ loop.index0 }}"></div>
+    <div class="col s6"style="padding-left: 0px;">
+        <a href="/nets/{{ net_id }}/{{training['session_id']}}">
+        <div class="neural-net-card">
+            <div class="logo">
+                <span class="helper"></span>
+                <img src="{{ url_for('static', filename='img/logo.png') }}" width="100" />
+            </div>
+            <div class="content">
+                <span class="card-title">{{ training['id'] }}</span>
+                <div class="neural-net-stats">
+                    <span style="font-size: 1.3rem;">{{training['session_id']}}</span><br/>
+                    <span style="font-size: 1.1rem;position: relative;top: 50%;transform: translateY(-50%);">Samples: {{training['data']['entries'] | length }}</span>
+                </div>
+            </div>
+        </div>
+        </a>
     </div>
 {% endfor %}
+    </div>
 {% endblock %}
 
 
@@ -28,6 +44,9 @@
 <script>
 
     var s = Snap("#snap");
+
+    var trainings = {{neural_net['trainings'] | safe}};
+    console.log(trainings);
 
     {% set layer_size = neural_net['network_info']['layers'] | length %}
     {% for x in range(0, layer_size) %}
@@ -46,7 +65,8 @@
                     s.line({{ unit_position_x }}+{{ radius }}, {{ unit_position_y }}, {{ next_unit_position_x }}-{{ radius }}, {{ next_unit_position_y }}).attr({
                         stroke: "#888",
                         strokeWidth: 1,
-                        strokeDasharray: "2 1"
+                        strokeDasharray: "2 1",
+                        strokeDashoffset: 0
                     });
                 {% endfor %}
             {% endif %}
@@ -79,7 +99,7 @@
         },
         axisY: {
             labelInterpolationFnc: function (value) {
-                return parseFloat((value * 100) / 100).toFixed(2);
+                return Math.round(value * 100) / 100;
             },
         },
     };

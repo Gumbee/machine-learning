@@ -12,6 +12,7 @@ from os import stat as os_stat
 
 app = Flask(__name__)
 
+# Routes
 
 @app.route("/")
 @app.route("/home")
@@ -32,7 +33,16 @@ def net_info(net_id):
 
     np.set_printoptions(threshold=np.nan)
 
-    return render_template('net_info.html', neural_net=neural_net, id=net_id)
+    return render_template('net_info.html', neural_net=neural_net, net_id=net_id)
+
+
+@app.route("/nets/<net_id>/<session_id>")
+def net_training_info(net_id, session_id):
+    neural_net = get_net_training_info(net_id, session_id)
+
+    np.set_printoptions(threshold=np.nan)
+
+    return render_template('net_training_info.html', neural_net=neural_net, net_id=net_id, session_id=session_id)
 
 
 # Util Functions
@@ -108,7 +118,34 @@ def get_net_info(net_id: str):
                             neural_net['network_info']['layer_sizes'] = layer_sizes
 
                         for training in log_data['training_sessions']:
-                            neural_net['trainings'].append(log_data['training_sessions'][training])
+                            print(training)
+                            neural_net['trainings'].append({'session_id': training, 'data': log_data['training_sessions'][training]})
+
+                    continue
+
+    return neural_net
+
+
+def get_net_training_info(net_id: str, session_id: str):
+    neural_net = {'training': {}, 'network_info': []}
+
+    path = os_path.join(ROOT_DIR, 'Logs/NeuralNets')
+
+    if os_path.exists(path):
+        for log_file_name in os_listdir(path):
+            if log_file_name.endswith('.log'):
+                file_path = os_path.join(path, log_file_name)
+
+                with open(file_path, 'rb') as log_file:
+                    log_data = pickle.load(log_file)
+
+                    if log_data['network_info']['id'] == net_id:
+                        if len(neural_net['network_info']) == 0:
+                            neural_net['network_info'] = log_data['network_info']
+
+                        for training in log_data['training_sessions']:
+                            if training == session_id:
+                                neural_net['training'] = log_data['training_sessions'][training]
 
                     continue
 

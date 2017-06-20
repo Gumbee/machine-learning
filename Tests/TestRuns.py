@@ -25,9 +25,8 @@ def get_mean_correct(prediction, y):
 
 def neural_net_test(Optimizer: callable(GradientDescentOptimizer), batch_size: int = 60, epochs: int = 2, visualize: bool = False, network_name: str = None):
     network = NeuralNetwork(784, name=network_name)
-    network.add_hidden_layer(900)
-    network.add_hidden_layer(900)
-    network.add_hidden_layer(400)
+    network.add_hidden_layer(500)
+    network.add_hidden_layer(300)
     network.add_output_layer(10)
 
     gd_params = GradientDescentParameters()
