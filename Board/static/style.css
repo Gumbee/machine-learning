@@ -210,7 +210,7 @@ nav .brand-logo, nav ul a {
     height: 100%;
     padding: 10px 10px 10px 140px;
     color: #DDD;
-    overflow: scroll;
+    overflow: none;
 }
 
 .neural-net-card .content .card-title {
@@ -219,7 +219,7 @@ nav .brand-logo, nav ul a {
 }
 
 .neural-net-card .content .neural-net-stats span {
-    font-size: 1.6rem;
+    font-size: 1.4rem;
     padding-right: 5px;
     text-transform: uppercase;
 }
@@ -231,6 +231,11 @@ nav .brand-logo, nav ul a {
 
 .view-content .title {
     font-size: 2.0rem;
+}
+
+.view-content .sub-title {
+    font-size: 1.3rem;
+    text-transform: uppercase;
 }
 
 .view-content .small-title {

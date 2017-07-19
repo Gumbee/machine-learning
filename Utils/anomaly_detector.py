@@ -26,10 +26,11 @@ class AnomalyDetector(object):
             self.sigma = (1./m) * (X-self.mu).T.dot((X-self.mu))
         else:
             self.mu = np.matrix((1./m) * np.sum(X, axis=0))
+            print(self.mu)
             self.sigma = np.matrix(np.sqrt((1./m) * np.sum(np.square(X - self.mu), axis=0)))
 
         # TODO: calculate epsilon based on a set which contains anomalies
-        self.epsilon = np.min(self.hypothesis(X))
+        # self.epsilon = np.min(self.hypothesis(X))*30
 
     def hypothesis(self, X: np.matrix):
         """
@@ -59,15 +60,29 @@ class AnomalyDetector(object):
         """
         Finds all anomalies in a given data set by searching for elements whose hypothesis value is
         below a certain value epsilon.
-        
+
         :param X:   The data set in which anomalies are tried to be captured
         :return:    The anomalies
         """
         p = self.hypothesis(X)
 
-        idx = np.where((np.array(p).ravel() < self.epsilon)*1 == 1)[0]
+        idx = np.where((np.array(p).ravel() < self.epsilon) * 1 == 1)[0]
 
         return X[idx, :]
+
+    def find_anomalies_indices(self, X: np.matrix):
+        """
+        Finds all anomalies in a given data set by searching for elements whose hypothesis value is
+        below a certain value epsilon.
+
+        :param X:   The data set in which anomalies are tried to be captured
+        :return:    The indices of the anomalies
+        """
+        p = self.hypothesis(X)
+
+        idx = np.where((np.array(p).ravel() < self.epsilon) * 1 == 1)[0]
+
+        return idx
 
     def visualize_anomalies(self, X: np.matrix, scatter=False):
         """

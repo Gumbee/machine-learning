@@ -282,8 +282,6 @@ class NeuralNetwork(object):
 
         log_handler.register_network(self.id, self.name, self.model)
 
-        print(log_handler.log_dict)
-
     # ======== Helper Functions ========
 
     def feed_forward(self, X: np.matrix, weights: list = None):

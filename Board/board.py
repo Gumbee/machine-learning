@@ -10,6 +10,9 @@ from os import listdir as os_listdir
 from os import path as os_path
 from os import stat as os_stat
 
+from Utils.anomaly_detector import AnomalyDetector as AnomalyDetector
+
+
 app = Flask(__name__)
 
 # Routes
@@ -43,7 +46,6 @@ def net_training_info(net_id, session_id):
     np.set_printoptions(threshold=np.nan)
 
     return render_template('net_training_info.html', neural_net=neural_net, net_id=net_id, session_id=session_id)
-
 
 # Util Functions
 
@@ -149,7 +151,40 @@ def get_net_training_info(net_id: str, session_id: str):
 
                     continue
 
+    np.set_printoptions(threshold=np.nan)
+
+    entries = neural_net['training']['entries']
+    costs = neural_net['training']['costs']
+
+    neural_net['training']['entries_no_anom'], neural_net['training']['costs_no_anom'] = get_anomaly_free_data(entries, costs)
+
     return neural_net
+
+
+def get_anomaly_free_data(entries: list, costs: list):
+    entries = np.matrix(entries).T
+    costs = np.matrix(costs).T
+    costs_old = np.matrix.copy(costs)
+    costs = np.log(costs)
+
+    detector = AnomalyDetector(multivariate=True)
+
+    x = np.hstack((entries, costs))
+
+    detector.train(x)
+
+    detector.epsilon = 0.003
+
+    idx = np.ones_like(entries, dtype=bool)
+    idx[detector.find_anomalies_indices(x)] = False
+
+    new_entries = np.array(entries[idx]).ravel()
+    new_costs = np.array(costs_old[idx]).ravel()
+
+    new_entries = new_entries.tolist()
+    new_costs = new_costs.tolist()
+
+    return new_entries, new_costs
 
 
 @app.context_processor

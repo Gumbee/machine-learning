@@ -78,7 +78,6 @@ class LogHandler(object):
             return -1
 
     def close_gd_session(self):
-        print(self.log_dict)
         self.write_gd_progress_to_file()
 
     def add_gd_entry(self, session_id: str, entry_num: int, epoch_num: int, cost: float, rel_chng: float):

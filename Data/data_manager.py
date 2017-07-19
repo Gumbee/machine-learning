@@ -131,7 +131,7 @@ def generate_data(m: int = 100, noise: float = 2, degree: int = 2):
 def create_polynomial_features(m: int, degree: int = 2):
     """
     Creates a data input set with polynomial features up to a specified degree.
-    
+
     :param m:       The number of examples (size of the data)
     :param degree:  The max degree that should be generated
     :return:        The data with polynomial features
@@ -139,9 +139,90 @@ def create_polynomial_features(m: int, degree: int = 2):
     X_out = np.ones((m, degree))
 
     for i in range(0, m):
-        for j in range(1, degree+1):
-            X_out[i, j-1] = (i-m/2)**j
+        for j in range(1, degree + 1):
+            X_out[i, j - 1] = (i - m / 2) ** j
 
     return X_out
 
 
+def add_polynomial_features(X: np.matrix, degree: int = 2):
+    """
+    Creates a data input set with polynomial features up to a specified degree.
+
+    :param X:       The matrix to which we add polynomial features
+    :param degree:  The max degree that should be generated
+    :return:        The data with polynomial features
+    """
+    m, n = X.shape
+    X_out = np.zeros((m, n*degree))
+    X_out[:, 0:n] = X[:, 0:n]
+
+    for i in range(0, m):
+        for j in range(0, n):
+            for k in range(2, degree + 1):
+                X_out[i, (k-1)*n+j] = X[i, j]**k
+
+    return X_out
+
+def add_inverse(X: np.matrix):
+    """
+    Creates a data input set with polynomial features up to a specified degree.
+
+    :param X:       The matrix to which we add polynomial features
+    :param degree:  The max degree that should be generated
+    :return:        The data with polynomial features
+    """
+    m, n = X.shape
+    X_out = np.zeros((m, n*2))
+    X_out[:, 0:n] = X[:, 0:n]
+
+    for i in range(0, m):
+        for j in range(0, n):
+            if X[i, j] != 0:
+                X_out[i, n+j] = 1./X[i, j]
+            else:
+                X_out[i, n+j] = 0
+
+    return X_out
+
+
+def log_transform(X: np.matrix):
+    """
+    Creates a data input set with polynomial features up to a specified degree.
+
+    :param X:       The matrix to which we add polynomial features
+    :param degree:  The max degree that should be generated
+    :return:        The data with polynomial features
+    """
+    m, n = X.shape
+    X_out = np.zeros((m, n))
+
+    for i in range(0, m):
+        for j in range(0, n):
+            if X[i, j] != 0:
+                X_out[i, j] = np.log(X[i, j])
+            else:
+                X_out[i, j] = 0
+
+    return X_out
+
+
+def sqrt_transform(X: np.matrix):
+    """
+    Creates a data input set with polynomial features up to a specified degree.
+
+    :param X:       The matrix to which we add polynomial features
+    :param degree:  The max degree that should be generated
+    :return:        The data with polynomial features
+    """
+    m, n = X.shape
+    X_out = np.zeros((m, n))
+
+    for i in range(0, m):
+        for j in range(0, n):
+            if X[i, j] != 0:
+                X_out[i, j] = np.sqrt(X[i, j])
+            else:
+                X_out[i, j] = 0
+
+    return X_out
