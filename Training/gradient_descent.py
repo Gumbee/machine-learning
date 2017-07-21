@@ -76,6 +76,7 @@ class GradientDescentOptimizer(object):
                 if callback is not None:
                     callback(init_theta, X, i, **callback_args)
 
+
         print('\033[91m', '\n{:<15s}'.format('Initial Error:'), '{:5.6e}'.format(initial_error),
               '\n{:<15s}'.format('New Error:'),
               '{:>5.6e}'.format(cost_func(init_theta, X, y, reg_lambda, **func_args)), '\033[0m')

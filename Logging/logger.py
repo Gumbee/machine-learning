@@ -63,6 +63,23 @@ class LogHandler(object):
             self.print_table_entry(entry_num, epoch_num + 1, cost, rel_chng, 1.0)
             self.add_gd_entry(session_id, entry_num, epoch_num + 1, cost, rel_chng)
 
+            self.log_gd_accuracy(session_id)
+
+    def log_gd_accuracy(self, session_id: str):
+        if self.gd_log_parameters.accuracy_func is None:
+            return
+
+        trackers = self.gd_log_parameters.accuracy_trackers
+        accuracy_func = self.gd_log_parameters.accuracy_func
+
+        if len(trackers) == 0:
+            return
+
+        for batch in trackers:
+            accuracy = accuracy_func(batch['X'], batch['y'])
+            # log progress
+            self.add_gd_acc_entry(session_id, batch['idx'], accuracy)
+
     def open_gd_session(self, initial_error: float):
         # only print the table if we want to log the progress
         if self.gd_log_parameters.log_progress:
@@ -70,8 +87,12 @@ class LogHandler(object):
             self.print_table_entry(0, 1, initial_error, initial_error, 1.00)
 
             session_id = uuid.uuid4().hex
-            self.log_dict['training_sessions'][session_id] = {'entries': [], 'epochs': [], 'costs': [], 'rel_chngs': [], 'entry_num': 0, 'rel_chng': 0, 'prev_cst': 0}
+            self.log_dict['training_sessions'][session_id] = {'entries': [], 'epochs': [], 'costs': [], 'accuracies': [], 'rel_chngs': [], 'entry_num': 0, 'rel_chng': 0, 'prev_cst': 0}
             self.add_gd_entry(session_id, 0, 1, initial_error, initial_error)
+
+            if len(self.log_dict['training_sessions'][session_id]['accuracies']) < self.gd_log_parameters.num_trackers:
+                for i in range(len(self.log_dict['training_sessions'][session_id]['accuracies']), self.gd_log_parameters.num_trackers):
+                    self.log_dict['training_sessions'][session_id]['accuracies'].append([])
 
             return session_id
         else:
@@ -86,11 +107,14 @@ class LogHandler(object):
         self.log_dict['training_sessions'][session_id]['costs'].append(cost)
         self.log_dict['training_sessions'][session_id]['rel_chngs'].append(rel_chng)
 
-    def register_network(self, net_id: str, name: str, model):
+    def add_gd_acc_entry(self, session_id: str, idx: int, accuracy: float):
+        self.log_dict['training_sessions'][session_id]['accuracies'][idx].append(accuracy)
+
+    def register_network(self, network):
         self.log_dict['network_info'] = {}
-        self.log_dict['network_info']['id'] = net_id
-        self.log_dict['network_info']['name'] = name
-        self.log_dict['network_info']['layers'] = [self.get_layer_info(layer) for layer in model['layers']]
+        self.log_dict['network_info']['id'] = network.id
+        self.log_dict['network_info']['name'] = network.name
+        self.log_dict['network_info']['layers'] = [self.get_layer_info(layer) for layer in network.model['layers']]
         self.write_gd_progress_to_file()
 
     @staticmethod

@@ -53,7 +53,7 @@
         {% set x_offset = 50 %}
         {% set y_offset = 60 %}
         {% set radius = 20 %}
-        {% set distance = 1330.0/layer_size %}
+        {% set distance = 1400.0/layer_size - layer_size*4 %}
         {% for y in range(0, neural_net['network_info']['layer_sizes'][x]) %}
             {% set unit_position_x = x_offset + x*distance %}
             {% set unit_position_y = y_offset + y*2.5*radius + (1-(neural_net['network_info']['layer_sizes'][x]/6)) * (190-radius-y_offset/2) %}

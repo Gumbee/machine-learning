@@ -266,21 +266,26 @@ class NeuralNetwork(object):
         optimizer = Optimizer()
 
         log_handler = log_handler or LogHandler()
-        log_handler.gd_log_parameters.log_file_name = 'NeuralNets/' + log_handler.gd_log_parameters.log_file_name
+        log_handler.gd_log_parameters.accuracy_func = self.get_mean_correct
+
+        if log_handler.gd_log_parameters.log_file_name[0:11] != 'NeuralNets/':
+            log_handler.gd_log_parameters.log_file_name = 'NeuralNets/' + log_handler.gd_log_parameters.log_file_name
 
         # if the log handler has already registered a (different) network, use a new log handler with the same settings
         # (but with a different file name)
         if 'network_info' in log_handler.log_dict and log_handler.log_dict['network_info']['id'] != self.id:
             new_log_handler = LogHandler()
+            new_log_handler.gd_log_parameters.log_file_name = 'NeuralNets/' + new_log_handler.gd_log_parameters.log_file_name
             new_log_handler.gd_log_parameters.log_progress = log_handler.gd_log_parameters.log_progress
             new_log_handler.gd_log_parameters.num_cost_evaluations = log_handler.gd_log_parameters.num_cost_evaluations
             new_log_handler.gd_log_parameters.cost_eval_use_subset = log_handler.gd_log_parameters.cost_eval_use_subset
             new_log_handler.gd_log_parameters.cost_eval_subset_size = log_handler.gd_log_parameters.cost_eval_subset_size
             log_handler = new_log_handler
 
+        log_handler.register_network(self)
+
         optimizer.train(weights, X, y, gd_params, log_handler)
 
-        log_handler.register_network(self.id, self.name, self.model)
 
     # ======== Helper Functions ========
 
@@ -309,7 +314,7 @@ class NeuralNetwork(object):
 
         return activations
 
-    def predict(self, X: np.matrix, threshold=0):
+    def predict(self, X: np.matrix, threshold=0.0):
         """
         Takes an input set and predicts the output based on the current model. If a threshold is specified then every 
         output unit with a value greater than the threshold will output 1 and all else 0. If no threshold is specified
@@ -353,6 +358,16 @@ class NeuralNetwork(object):
 
         return weights, layers
 
+    def get_mean_correct(self, X, y, threshold=0.0):
+        num_right = 0
+
+        prediction = self.predict(X, threshold=threshold)
+
+        for i in range(0, len(prediction)):
+            if np.array_equal(prediction[i], y[i]):
+                num_right += 1
+
+        return (num_right / (len(y) * 1.)) * 100
 
 
 class NeuralLayer(object):

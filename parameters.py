@@ -1,4 +1,5 @@
 import time
+import numpy as np
 
 
 class GradientDescentParameters(object):
@@ -36,5 +37,22 @@ class GDLoggingParameters(object):
     cost_eval_subset_size = 5000
     log_file_name = 'gd_log_'
 
+    accuracy_trackers = []
+    accuracy_func = None
+
+    num_trackers = 0
+
     def __init__(self):
         self.log_file_name = 'gd_log_' + time.strftime("%Y%m%d-%H%M%S")
+
+    def add_accuracy_tracker(self, X, y, subset_size=-1):
+        if subset_size > 0:
+            m, n = X.shape
+            idx = np.random.permutation(m)
+
+            self.accuracy_trackers.append({'X': X[idx[0:min(subset_size, m)], :], 'y': y[idx[0:min(subset_size, m)], :], 'idx': self.num_trackers})
+            self.num_trackers += 1
+        else:
+
+            self.accuracy_trackers.append({'X': X, 'y': y, 'idx': self.num_trackers})
+            self.num_trackers += 1
