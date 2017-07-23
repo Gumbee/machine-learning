@@ -71,12 +71,13 @@ class LogHandler(object):
 
         trackers = self.gd_log_parameters.accuracy_trackers
         accuracy_func = self.gd_log_parameters.accuracy_func
+        threshold = self.gd_log_parameters.prediction_threshold
 
         if len(trackers) == 0:
             return
 
         for batch in trackers:
-            accuracy = accuracy_func(batch['X'], batch['y'])
+            accuracy = accuracy_func(batch['X'], batch['y'], threshold=threshold)
             # log progress
             self.add_gd_acc_entry(session_id, batch['idx'], accuracy)
 
@@ -87,12 +88,13 @@ class LogHandler(object):
             self.print_table_entry(0, 1, initial_error, initial_error, 1.00)
 
             session_id = uuid.uuid4().hex
-            self.log_dict['training_sessions'][session_id] = {'entries': [], 'epochs': [], 'costs': [], 'accuracies': [], 'rel_chngs': [], 'entry_num': 0, 'rel_chng': 0, 'prev_cst': 0}
+            self.log_dict['training_sessions'][session_id] = {'entries': [], 'epochs': [], 'costs': [], 'accuracies': [], 'accuracies_names': [], 'rel_chngs': [], 'entry_num': 0, 'rel_chng': 0, 'prev_cst': 0}
             self.add_gd_entry(session_id, 0, 1, initial_error, initial_error)
 
-            if len(self.log_dict['training_sessions'][session_id]['accuracies']) < self.gd_log_parameters.num_trackers:
-                for i in range(len(self.log_dict['training_sessions'][session_id]['accuracies']), self.gd_log_parameters.num_trackers):
+            if len(self.log_dict['training_sessions'][session_id]['accuracies']) < self.gd_log_parameters.num_accuracy_monitors:
+                for i in range(len(self.log_dict['training_sessions'][session_id]['accuracies']), self.gd_log_parameters.num_accuracy_monitors):
                     self.log_dict['training_sessions'][session_id]['accuracies'].append([])
+                    self.log_dict['training_sessions'][session_id]['accuracies_names'].append(self.gd_log_parameters.accuracy_trackers[i]['name'])
 
             return session_id
         else:

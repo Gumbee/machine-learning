@@ -37,7 +37,10 @@ def net_info(net_id):
 def net_training_info(net_id, session_id):
     neural_net = LogDM.get_net_training_info(net_id, session_id)
 
-    return render_template('net_training_info.html', neural_net=neural_net, net_id=net_id, session_id=session_id)
+    if neural_net is None:
+        return render_template('error.html')
+    else:
+        return render_template('net_training_info.html', neural_net=neural_net, net_id=net_id, session_id=session_id)
 
 # ========== end of routes ==========
 

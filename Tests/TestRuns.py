@@ -13,46 +13,48 @@ from Utils.anomaly_detector import AnomalyDetector as AnomalyDetector
 from parameters import GradientDescentParameters as GradientDescentParameters
 
 
-def get_mean_correct(prediction, y):
-    num_right = 0
-
-    for i in range(0, len(prediction)):
-        if np.array_equal(prediction[i], y[i]):
-            num_right += 1
-
-    print('Accuracy:', (num_right / (len(y) * 1.)) * 100)
-
-
 def neural_net_test(Optimizer: callable(GradientDescentOptimizer), batch_size: int = 60, epochs: int = 2, visualize: bool = False, network_name: str = None):
-    network = NeuralNetwork(784, name=network_name)
-    network.add_hidden_layer(100)
-    network.add_hidden_layer(300)
-    network.add_output_layer(10)
+    # define network architecture
+    network = NeuralNetwork(810*2, name=network_name)
+    network.add_output_layer(1)
 
+    # set parameters
     gd_params = GradientDescentParameters()
-    gd_params.learning_rate = 1
+    gd_params.learning_rate = 0.2
     gd_params.batch_size = batch_size
     gd_params.reg_lambda = 0
     gd_params.epochs = epochs
 
-    X, y, X_val, y_val, X_test, y_test = DataManager.get_mnist_data()
+    # get the data sets
+    X, y, X_val, y_val, X_test, y_test = DataManager.get_unity_data(0.6, 0.3, dataset="run")
 
+    X = DataManager.add_polynomial_features(X, 2)
+    X_val = DataManager.add_polynomial_features(X_val, 2)
+    X_test = DataManager.add_polynomial_features(X_test, 2)
+
+    # create a log handler who will handle the logging of the progress
     log_handler = LogHandler()
 
-    log_handler.gd_log_parameters.add_accuracy_tracker(X, y, 500)
-    log_handler.gd_log_parameters.add_accuracy_tracker(X_val, y_val, 500)
-    log_handler.gd_log_parameters.add_accuracy_tracker(X_test, y_test, 500)
+    # add a few data sets on which we want to monitor the network's accuracy to the log handler
+    log_handler.gd_log_parameters.add_accuracy_monitor(X, y, name="Training Set")
+    log_handler.gd_log_parameters.add_accuracy_monitor(X_val, y_val, name="Validation Set")
+    log_handler.gd_log_parameters.add_accuracy_monitor(X_test, y_test, name="Test Set")
+    log_handler.gd_log_parameters.prediction_threshold = 0.5
 
+    # train the network and output the duration it took to train the net
     t = time.time()
+    network.train(X, y, Optimizer, gd_params, log_handler)
     network.train(X, y, Optimizer, gd_params, log_handler)
     network.train(X, y, Optimizer, gd_params, log_handler)
     t = time.time()-t
     print("\nProcess finished in", '{:6.3f}'.format(t), 'seconds\n')
 
-    print(network.get_mean_correct(X, y))
-    print(network.get_mean_correct(X_val, y_val))
-    print(network.get_mean_correct(X_test, y_test))
+    # display the final accuracies on each data set
+    print('Accuracy Training: ', network.get_mean_correct(X, y, 0.5))
+    print('Accuracy Validation: ', network.get_mean_correct(X_val, y_val, 0.5))
+    print('Accuracy Test: ', network.get_mean_correct(X_test, y_test, 0.5))
 
+    # visualize results if desired
     if visualize:
         predictions = network.predict(X_val)
 

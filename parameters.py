@@ -39,20 +39,33 @@ class GDLoggingParameters(object):
 
     accuracy_trackers = []
     accuracy_func = None
+    prediction_threshold = 0.0
 
-    num_trackers = 0
+    num_accuracy_monitors = 0
 
     def __init__(self):
         self.log_file_name = 'gd_log_' + time.strftime("%Y%m%d-%H%M%S")
 
-    def add_accuracy_tracker(self, X, y, subset_size=-1):
+    def add_accuracy_monitor(self, X, y, subset_size=-1, name=''):
+        if len(name) == 0:
+            name = 'Data set ' + str(self.num_accuracy_monitors)
+
         if subset_size > 0:
             m, n = X.shape
             idx = np.random.permutation(m)
 
-            self.accuracy_trackers.append({'X': X[idx[0:min(subset_size, m)], :], 'y': y[idx[0:min(subset_size, m)], :], 'idx': self.num_trackers})
-            self.num_trackers += 1
+            self.accuracy_trackers.append({
+                'X': X[idx[0:min(subset_size, m)], :],
+                'y': y[idx[0:min(subset_size, m)], :],
+                'idx': self.num_accuracy_monitors,
+                'name': name
+            })
+            self.num_accuracy_monitors += 1
         else:
-
-            self.accuracy_trackers.append({'X': X, 'y': y, 'idx': self.num_trackers})
-            self.num_trackers += 1
+            self.accuracy_trackers.append({
+                'X': X,
+                'y': y,
+                'idx': self.num_accuracy_monitors,
+                'name': name
+            })
+            self.num_accuracy_monitors += 1

@@ -186,43 +186,51 @@ def add_inverse(X: np.matrix):
     return X_out
 
 
-def log_transform(X: np.matrix):
+def get_unity_data(training_ratio=0.6, validation_ratio=0.2, dataset="run", prefix=""):
     """
-    Creates a data input set with polynomial features up to a specified degree.
+    Reads the unity generated data, splits it up into training set, cross validation set and test set and returns the result.
 
-    :param X:       The matrix to which we add polynomial features
-    :param degree:  The max degree that should be generated
-    :return:        The data with polynomial features
+    :param dataset:             A string defining which data set to use (eg. "run", "walk", "jump", etc...)
+    :param training_ratio:      The fraction of the data that should be used as the training set
+    :param validation_ratio:    The fraction of the data that should be used as the cross validation set (the remaining
+                                fraction is used as test set).
+    :return:                    X -> Training set, y -> Training set's output, X_val -> Validation set, y_val -> Validation set's output,
+                                X_test -> Test set, y_test -> Test set's output
     """
-    m, n = X.shape
-    X_out = np.zeros((m, n))
+    input_data = []
+    output_data = []
 
-    for i in range(0, m):
-        for j in range(0, n):
-            if X[i, j] != 0:
-                X_out[i, j] = np.log(X[i, j])
-            else:
-                X_out[i, j] = 0
+    with open(ROOT_DIR + '/Data/DataFiles/' + prefix + 'data_' + dataset + '.txt') as data:
+        for line in data:
+            line = line.strip()
+            current_line = np.array(line.split(' ')).astype(np.float)
+            input_data.append(current_line)
+            output_data.append([1.0])
 
-    return X_out
+    with open(ROOT_DIR + '/Data/DataFiles/' + prefix + 'data_no' + dataset + '.txt') as data:
+        for line in data:
+            line = line.strip()
+            current_line = np.array(line.split(' ')).astype(np.float)
+            input_data.append(current_line)
+            output_data.append([0.0])
 
+    input_data = np.array(input_data).astype(np.float)
+    output_data = np.array(output_data)
 
-def sqrt_transform(X: np.matrix):
-    """
-    Creates a data input set with polynomial features up to a specified degree.
+    m = len(input_data)
+    # get a random permutation of all the indices so we don't just train on certain digits
+    idx = np.random.permutation(m)
 
-    :param X:       The matrix to which we add polynomial features
-    :param degree:  The max degree that should be generated
-    :return:        The data with polynomial features
-    """
-    m, n = X.shape
-    X_out = np.zeros((m, n))
+    training_end = int(training_ratio * m)
+    validation_end = int(training_end + validation_ratio * m)
 
-    for i in range(0, m):
-        for j in range(0, n):
-            if X[i, j] != 0:
-                X_out[i, j] = np.sqrt(X[i, j])
-            else:
-                X_out[i, j] = 0
+    X = input_data[idx[0:training_end], :]
+    y = output_data[idx[0:training_end], :]
 
-    return X_out
+    X_val = input_data[idx[training_end:validation_end], :]
+    y_val = output_data[idx[training_end:validation_end], :]
+
+    X_test = input_data[idx[validation_end:], :]
+    y_test = output_data[idx[validation_end:], :]
+
+    return X, y, X_val, y_val, X_test, y_test

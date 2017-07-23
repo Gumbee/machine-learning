@@ -118,6 +118,9 @@ def get_net_training_info(net_id: str, session_id: str):
 
                     continue
 
+    if not neural_net['training']:
+        return None
+
     # get the entries and the costs
     entries = neural_net['training']['entries']
     costs = neural_net['training']['costs']

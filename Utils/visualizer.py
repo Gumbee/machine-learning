@@ -47,7 +47,7 @@ def visualize_image(X: np.matrix, y: np.matrix = None, size: int = 20, transpose
         if y is not None:
             print('{:<14s}'.format('Value:'), '{:^2d}'.format((int(np.where(y[idx[i]] == 1)[0]) + 1) % 10))
         if feed_values is not None:
-            print('Confidence:', feed_values[2][idx[i]][(int(np.where(predictions[idx[i]] == 1)[0]))])
+            print('Confidence:', feed_values[len(feed_values)-1][idx[i]][(int(np.where(predictions[idx[i]] == 1)[0]))])
 
         input_key = input('\rPress Enter to continue or \'q\' to exit....')
         plt.close()
