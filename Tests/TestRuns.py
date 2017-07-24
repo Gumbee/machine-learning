@@ -15,8 +15,11 @@ from parameters import GradientDescentParameters as GradientDescentParameters
 
 def neural_net_test(Optimizer: callable(GradientDescentOptimizer), batch_size: int = 60, epochs: int = 2, visualize: bool = False, network_name: str = None):
     # define network architecture
-    network = NeuralNetwork(810*2, name=network_name)
-    network.add_output_layer(1)
+    network = NeuralNetwork(784, name=network_name)
+    network.add_hidden_layer(300)
+    network.add_hidden_layer(300)
+    network.add_hidden_layer(300)
+    network.add_output_layer(10)
 
     # set parameters
     gd_params = GradientDescentParameters()
@@ -26,23 +29,20 @@ def neural_net_test(Optimizer: callable(GradientDescentOptimizer), batch_size: i
     gd_params.epochs = epochs
 
     # get the data sets
-    X, y, X_val, y_val, X_test, y_test = DataManager.get_unity_data(0.6, 0.3, dataset="run")
-
-    X = DataManager.add_polynomial_features(X, 2)
-    X_val = DataManager.add_polynomial_features(X_val, 2)
-    X_test = DataManager.add_polynomial_features(X_test, 2)
+    X, y, X_val, y_val, X_test, y_test = DataManager.get_mnist_data()
 
     # create a log handler who will handle the logging of the progress
     log_handler = LogHandler()
 
     # add a few data sets on which we want to monitor the network's accuracy to the log handler
-    log_handler.gd_log_parameters.add_accuracy_monitor(X, y, name="Training Set")
-    log_handler.gd_log_parameters.add_accuracy_monitor(X_val, y_val, name="Validation Set")
-    log_handler.gd_log_parameters.add_accuracy_monitor(X_test, y_test, name="Test Set")
-    log_handler.gd_log_parameters.prediction_threshold = 0.5
+    log_handler.gd_log_parameters.add_accuracy_monitor(X, y, name="Training Set", subset_size=500)
+    log_handler.gd_log_parameters.add_accuracy_monitor(X_val, y_val, name="Validation Set", subset_size=500)
+    log_handler.gd_log_parameters.add_accuracy_monitor(X_test, y_test, name="Test Set", subset_size=500)
 
     # train the network and output the duration it took to train the net
     t = time.time()
+    network.train(X, y, Optimizer, gd_params, log_handler)
+    network.train(X, y, Optimizer, gd_params, log_handler)
     network.train(X, y, Optimizer, gd_params, log_handler)
     network.train(X, y, Optimizer, gd_params, log_handler)
     network.train(X, y, Optimizer, gd_params, log_handler)
@@ -50,9 +50,9 @@ def neural_net_test(Optimizer: callable(GradientDescentOptimizer), batch_size: i
     print("\nProcess finished in", '{:6.3f}'.format(t), 'seconds\n')
 
     # display the final accuracies on each data set
-    print('Accuracy Training: ', network.get_mean_correct(X, y, 0.5))
-    print('Accuracy Validation: ', network.get_mean_correct(X_val, y_val, 0.5))
-    print('Accuracy Test: ', network.get_mean_correct(X_test, y_test, 0.5))
+    print('Accuracy Training: ', network.get_mean_correct(X, y))
+    print('Accuracy Validation: ', network.get_mean_correct(X_val, y_val))
+    print('Accuracy Test: ', network.get_mean_correct(X_test, y_test))
 
     # visualize results if desired
     if visualize:

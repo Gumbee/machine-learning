@@ -1,44 +1,49 @@
 {% extends "layout.html" %}
+<!--  ================ Title ================ -->
 {% block title %}Neural Networks{% endblock %}
 
+<!--  ================ Breadcrumb ================ -->
 {% block breadcrumb %}
     <a href="#" class="breadcrumb">Neural Networks</a>
 {% endblock %}
 
 
+<!--  ================ Content ================ -->
 {% block content %}
-{% if not neural_nets == [] %}
-    <div class="row">
-    {% for net in neural_nets %}
-            <div class="col s6"style="padding-left: 0px;">
-                <a href="/nets/{{ net['id'] }}">
-                <div class="neural-net-card">
-                    <div class="logo">
-                        <span class="helper"></span>
-                        <img src="{{ url_for('static', filename='img/logo.png') }}" width="100" />
-                    </div>
-                    <div class="content">
-                        <span class="card-title">{{ net['name'] }}</span> <span style="font-size: 0.6rem;color: #aaa;margin-left:5px;">{{ net['id']}}</span>
-                        <div class="neural-net-stats">
-                            {% set size = net['layers'] | length %}
-                            <span>Layers: <span class="value">{{ size }}</span></span>
-                            <span>Inputs: <span class="value">{{ net['layers'][0]['units'] }}</span></span>
-                            <span>Outputs: <span class="value">{{ net['layers'][size-1]['units'] }}</span></span>
+    {% if not neural_nets == [] %}
+        <div class="row">
+        {#  Display all neural nets  #}
+        {% for net in neural_nets %}
+                <div class="col s6"style="padding-left: 0px;">
+                    <a href="/nets/{{ net['id'] }}">
+                    <div class="neural-net-card">
+                        <div class="logo">
+                            <span class="helper"></span>
+                            <img src="{{ url_for('static', filename='img/logo.png') }}" width="100" />
+                        </div>
+                        <div class="content">
+                            <span class="card-title">{{ net['name'] }}</span> <span style="font-size: 0.6rem;color: #aaa;margin-left:5px;">{{ net['id']}}</span>
+                            <div class="neural-net-stats">
+                                {% set size = net['layers'] | length %}
+                                <span>Layers: <span class="value">{{ size }}</span></span>
+                                <span>Inputs: <span class="value">{{ net['layers'][0]['units'] }}</span></span>
+                                <span>Outputs: <span class="value">{{ net['layers'][size-1]['units'] }}</span></span>
+                            </div>
                         </div>
                     </div>
+                    </a>
                 </div>
-                </a>
-            </div>
-    {% endfor %}
-    </div>
-{% else %}
-  <h4 style="margin-top: 0;">No Data!</h4>
-{% endif %}
+        {% endfor %}
+        </div>
+    {% else %}
+      <h4 style="margin-top: 0;">No Data!</h4>
+    {% endif %}
 {% endblock %}
 
 
 {% block scripts %}
 <script>
+    {# Convert python's True and False variables to javascript variables #}
     var True = true;
     var False = false;
     var data = {{ neural_nets|safe }};

@@ -126,7 +126,7 @@ def get_net_training_info(net_id: str, session_id: str):
     costs = neural_net['training']['costs']
 
     # get the anomaly free version of the entries and the costs
-    neural_net['training']['entries_no_anom'], neural_net['training']['costs_no_anom'] = get_anomaly_free_data(entries, costs)
+    neural_net['training']['entries_without_anom'], neural_net['training']['costs_without_anom'] = get_anomaly_free_data(entries, costs)
 
     return neural_net
 

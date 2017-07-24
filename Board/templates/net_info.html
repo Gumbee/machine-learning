@@ -1,12 +1,15 @@
 {% extends "layout.html" %}
+<!--  ================ Title ================ -->
 {% block title %}Neural Networks{% endblock %}
 
+<!--  ================ Breadcrumb ================ -->
 {% block breadcrumb %}
     <a href="/nets" class="breadcrumb">Neural Networks</a>
     <a href="#" class="breadcrumb">Network: {{ neural_net['network_info']['name'] }}</a>
 {% endblock %}
 
 
+<!--  ================ Content ================ -->
 {% block content %}
 <div>
     <span class="title">{{neural_net['network_info']['name']}}</span><span class="small-title">{{ net_id }}</span>
@@ -16,30 +19,31 @@
 
     </svg>
 </div>
-    <div class="row">
-{% for training in neural_net['trainings'] %}
-    <div class="col s6"style="padding-left: 0px;">
-        <a href="/nets/{{ net_id }}/{{training['session_id']}}">
-        <div class="neural-net-card">
-            <div class="logo">
-                <span class="helper"></span>
-                <img src="{{ url_for('static', filename='img/logo.png') }}" width="100" />
-            </div>
-            <div class="content">
-                <span class="card-title">{{ training['id'] }}</span>
-                <div class="neural-net-stats">
-                    <span style="font-size: 1.3rem;">{{training['session_id']}}</span><br/>
-                    <span style="font-size: 1.1rem;position: relative;top: 50%;transform: translateY(-50%);">Samples: {{training['data']['entries'] | length }}</span>
+<div class="row">
+{#  Display all trainings  #}
+    {% for training in neural_net['trainings'] %}
+        <div class="col s6"style="padding-left: 0px;">
+            <a href="/nets/{{ net_id }}/{{training['session_id']}}">
+            <div class="neural-net-card">
+                <div class="logo">
+                    <span class="helper"></span>
+                    <img src="{{ url_for('static', filename='img/logo.png') }}" width="100" />
+                </div>
+                <div class="content">
+                    <span class="card-title">{{ training['id'] }}</span>
+                    <div class="neural-net-stats">
+                        <span style="font-size: 1.3rem;">{{training['session_id']}}</span><br/>
+                        <span style="font-size: 1.1rem;position: relative;top: 50%;transform: translateY(-50%);">Samples: {{training['data']['entries'] | length }}</span>
+                    </div>
                 </div>
             </div>
+            </a>
         </div>
-        </a>
-    </div>
-{% endfor %}
-    </div>
+    {% endfor %}
+</div>
 {% endblock %}
 
-
+<!--  ================ Draw the network with snap.svg ================ -->
 {% block scripts %}
 <script>
 

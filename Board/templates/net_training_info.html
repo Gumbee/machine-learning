@@ -1,15 +1,25 @@
 {% extends "layout.html" %}
+<!--  ================ Title ================ -->
 {% block title %}Neural Networks{% endblock %}
 
+<!--  ================ Breadcrumb ================ -->
 {% block breadcrumb %}
     <a href="/nets" class="breadcrumb">Neural Networks</a>
     <a href="/nets/{{net_id}}" class="breadcrumb">Network: {{ neural_net['network_info']['name'] }}</a>
     <a href="#" class="breadcrumb">Session: {{ session_id }}</a>
 {% endblock %}
 
-
+<!--  ================ Content ================ -->
 {% block content %}
-{% if neural_net['training']['entries']|length != neural_net['training']['entries_no_anom']|length and neural_net['training']['entries_no_anom']|length > 0  %}
+{% set num_with_anomalies = neural_net['training']['entries'] | length %}
+{% set num_without_anomalies = neural_net['training']['entries_without_anom'] | length %}
+{% set num_accuracy_monitors = neural_net['training']['accuracies'] | length %}
+
+<!--
+     if there are anomalies (if the number of points in the anomaly graph are not equal to the number of points
+     the regular graph, then there are anomalies)
+-->
+{% if num_without_anomalies != num_with_anomalies and num_without_anomalies > 0  %}
 <div style="width: 50%;float: left;height: 50px;position: relative;">
     <div style="position: absolute;bottom: 0;">
         <span class="title">{{neural_net['network_info']['name']}}</span><span class="small-title">{{ net_id }}</span>
@@ -21,7 +31,11 @@
 <div style="margin-top:0px;width: 50%;height: 300px;float:left;display: block;">
     <div class="ct-chart" id="chart_with_anomalies"></div>
 </div>
+<div style="margin-top:0px;width: 50%;float:left;display: block;">
+    <div class="ct-chart" id="chart_without_anomalies"></div>
+</div>
 {% else %}
+<!-- If there are no anomalies we just show the graph without the anomalies and make it full width -->
 <div style="width: 100%;position: relative;">
     <div>
         <span class="title">{{neural_net['network_info']['name']}}</span><span class="small-title">{{ net_id }}</span>
@@ -31,23 +45,21 @@
     <div class="ct-chart" id="chart_with_anomalies"></div>
 </div>
 {% endif %}
-{% if neural_net['training']['entries']|length != neural_net['training']['entries_no_anom']|length  and neural_net['training']['entries_no_anom']|length > 0 %}
-<div style="margin-top:0px;width: 50%;float:left;display: block;">
-    <div class="ct-chart" id="chart_no_anomalies"></div>
-</div>
-{% endif %}
 
+{% if num_accuracy_monitors > 0 %}
 <div class="sub-title" style="padding-bottom: 10px;">Accuracies</div>
 <!-- Accuracies -->
 <div style="margin-top:0px;width: 100%;float:left;display: block;">
     <div class="ct-chart ct-tracker" id="chart_tracker"></div>
 </div>
+{% endif %}
 
 {% endblock %}
 
-
+<!--  ================ Charts initialization ================ -->
 {% block scripts %}
-<script>
+<script type="text/javascript">
+    {# convert python's True and False to js true and false #}
     var True = true;
     var False = false;
     var data = {{ neural_net|safe }};
@@ -56,8 +68,8 @@
     var values = data['training']['costs'];
     var x_axis = data['training']['entries'];
 
-    var values_no_anom = data['training']['costs_no_anom'];
-    var x_axis_no_anom = data['training']['entries_no_anom'];
+    var values_without_anom = data['training']['costs_without_anom'];
+    var x_axis_without_anom = data['training']['entries_without_anom'];
 
     document.addEventListener('DOMContentLoaded',function(){
         var options = {
@@ -69,7 +81,7 @@
             },
             axisX: {
                 labelInterpolationFnc: function (value, index) {
-                    return index % (data['training']['entry_num']/10) === 0 ? value : null;
+                    return index % (parseInt(data['training']['entry_num']/10)) === 0 ? value : null;
                 },
                 showGrid: false
             },
@@ -87,11 +99,11 @@
                     ]
         }, options);
 
-        if(x_axis_no_anom.length != x_axis.length) {
-            new Chartist.Line('#chart_no_anomalies', {
-                labels: x_axis_no_anom,
+        if(x_axis_without_anom.length != x_axis.length) {
+            new Chartist.Line('#chart_without_anomalies', {
+                labels: x_axis_without_anom,
                 series: [
-                    values_no_anom
+                    values_without_anom
                 ]
             }, options);
         }
@@ -105,7 +117,7 @@
             },
             axisX: {
                 labelInterpolationFnc: function (value, index) {
-                    return index % (data['training']['entry_num']/20) === 0 ? value : null;
+                    return index % (parseInt(data['training']['entry_num']/20)) === 0 ? value : null;
                 },
                 showGrid: false
             },
@@ -135,7 +147,5 @@
         }, options_tracker);
 
     });
-
-
 </script>
 {% endblock %}

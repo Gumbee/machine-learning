@@ -36,7 +36,7 @@ nav .brand-logo, nav ul a {
     min-height:100%;
     float: left;
     background-color: #4f5f6f;
-    box-shadow: 0px 0px 2px 1px rgba(0,0,0,0.13);
+    box-shadow: 0px 0px 5px 2px rgba(0,0,0,0.33);
     z-index: 2;
 }
 
@@ -124,6 +124,12 @@ nav .brand-logo, nav ul a {
 .sidebar ul li[active] {
     border-left: 6px solid #85CE36;
 }
+
+.menubar {
+    box-shadow: 0px 5px 5px 2px rgba(0,0,0,0.33);
+    z-index: 2;
+}
+
 
 .z-depth-1, nav, .card-panel, .card, .toast, .btn, .btn-large, .btn-floating, .dropdown-content, .collapsible, .side-nav {
     /*box-shadow: 0 2px 2px 0 rgba(0, 0, 0, 0.08), 0 1px 5px 0 rgba(0, 0, 0, 0.05), 0 3px 1px -2px rgba(0, 0, 0, 0.10);*/
@@ -269,7 +275,7 @@ nav .brand-logo, nav ul a {
     left: 50%;
 }
 
-    .ct-legend li {
+.ct-legend li {
     position: relative;
     float: left;
     display: block;
