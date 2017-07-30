@@ -10,7 +10,27 @@
 
 
 <!--  ================ Content ================ -->
+{% set num_inputs = neural_net['input_data'] | length %}
 {% block content %}
+<div class="overlay" id="overlay">
+    <a class="waves-effect waves-light btn-floating btn-flat close-button" style="position:absolute;right: 20px;top:20px;" id="close-button" onclick="closePopup('overlay')">
+        <i class="material-icons" style="color:#777;font-size: 2rem;">close</i>
+    </a>
+    <a class="waves-effect waves-light btn-floating btn-flat btn-large" style="position:absolute;left: 20px;top:0;bottom: 0;margin-top:auto;margin-bottom:auto;" onclick="rotateLeft()">
+        <i class="material-icons" style="color:#777;font-size: 5rem;margin-left: -22px;margin-top:2px;">keyboard_arrow_left</i>
+    </a>
+    <a class="waves-effect waves-light btn-floating btn-flat btn-large" style="position:absolute;right: 20px;top:0;bottom: 0;margin-top:auto;margin-bottom:auto;" onclick="rotateRight()">
+        <i class="material-icons" style="color:#777;font-size: 5rem;margin-left: -12px;margin-top:1px;">keyboard_arrow_right</i>
+    </a>
+
+    <div id="carousel-content" class="carousel-content">
+        {% for input_data in neural_net['input_data'] %}
+        <div class="input-container" id="input_data_div_{{ loop.index0 }}" style="position:absolute;">
+            <span class="carousel-title">Dataset {{ loop.index }}</span>
+        </div>
+        {% endfor %}
+    </div>
+</div>
 <div>
     <span class="title">{{neural_net['network_info']['name']}}</span><span class="small-title">{{ net_id }}</span>
 </div>
@@ -20,53 +40,64 @@
     </svg>
 </div>
 <div class="row">
-{#  Display all trainings  #}
+    <div class="neural-net-card valign-wrapper link-list" style="padding-left: 15px;height: 50px;">
+        <a class="waves-effect waves-light btn-floating btn-flat {{ 'disabled' if num_inputs <= 0 }}" style="position:relative;float: left;margin-right: 5px;" id="overlay-button" onclick="openPopup('overlay')">
+            <i class="material-icons" style="color:#777;margin-top: -30px;">bubble_chart</i>
+        </a>
+        <a href="#!" class="{{ 'disabled' if num_inputs <= 0 }}" onclick="openPopup('overlay')">Visualize Datasets ({{ num_inputs }})</a>
+    </div>
+    {#  Display all trainings  #}
+    <div class="full-width-container">
     {% for training in neural_net['trainings'] %}
         <div class="col s6"style="padding-left: 0px;">
-            <a href="/nets/{{ net_id }}/{{training['session_id']}}">
             <div class="neural-net-card">
-                <div class="logo">
-                    <span class="helper"></span>
-                    <img src="{{ url_for('static', filename='img/logo.png') }}" width="100" />
-                </div>
                 <div class="content">
-                    <span class="card-title">{{ training['id'] }}</span>
+                    <span class="card-title"> <a href="/nets/{{ net_id }}/{{training['session_id']}}">{{ training['session_id'] }}</a></span>
                     <div class="neural-net-stats">
-                        <span style="font-size: 1.3rem;">{{training['session_id']}}</span><br/>
                         <span style="font-size: 1.1rem;position: relative;top: 50%;transform: translateY(-50%);">Samples: {{training['data']['entries'] | length }}</span>
+                        <a class="waves-effect waves-light btn-floating btn-flat dropdown-button" data-alignment="right" data-activates='dropdown{{ loop.index0 }}' style="position:absolute;right:10px;top:10px;"><i class="material-icons" style="color:#777;">more_vert</i></a>
+                        <ul id='dropdown{{ loop.index0 }}' class='dropdown-content'>
+                            <li><a href="#!">one</a></li>
+                            <li><a href="#!">two</a></li>
+                        </ul>
                     </div>
                 </div>
             </div>
-            </a>
         </div>
     {% endfor %}
+    </div>
 </div>
+
 {% endblock %}
 
 <!--  ================ Draw the network with snap.svg ================ -->
 {% block scripts %}
 <script>
-
     var s = Snap("#snap");
 
     var trainings = {{neural_net['trainings'] | safe}};
     console.log(trainings);
 
+
+    var container = document.getElementById("view-content");
+    var width = container.clientWidth;
+    var height = container.clientHeight;
+
     {% set layer_size = neural_net['network_info']['layers'] | length %}
     {% for x in range(0, layer_size) %}
-        {% set x_offset = 50 %}
-        {% set y_offset = 60 %}
-        {% set radius = 20 %}
-        {% set distance = 1400.0/layer_size - layer_size*4 %}
+        var x_offset = 50;
+        var y_offset = 60;
+        var radius = 20;
+        var distance = (width+width*0.15)/{{ layer_size}} - {{  layer_size*4 }}
         {% for y in range(0, neural_net['network_info']['layer_sizes'][x]) %}
-            {% set unit_position_x = x_offset + x*distance %}
-            {% set unit_position_y = y_offset + y*2.5*radius + (1-(neural_net['network_info']['layer_sizes'][x]/6)) * (190-radius-y_offset/2) %}
+            var unit_position_x = x_offset + {{ x }}*distance;
+            var unit_position_y = y_offset + {{ y*2.5 }}*radius + {{ (1-(neural_net['network_info']['layer_sizes'][x]/6))}} * (190-radius-y_offset/2);
 
             {% if x+1 < layer_size %}
                 {% for z in range(0, neural_net['network_info']['layer_sizes'][x+1]) %}
-                    {% set next_unit_position_x = x_offset + (x+1)*distance %}
-                    {% set next_unit_position_y = y_offset + z*2.5*radius + (1-(neural_net['network_info']['layer_sizes'][x+1]/6)) * (190-radius-y_offset/2) %}
-                    s.line({{ unit_position_x }}+{{ radius }}, {{ unit_position_y }}, {{ next_unit_position_x }}-{{ radius }}, {{ next_unit_position_y }}).attr({
+                    var next_unit_position_x = x_offset + ({{ x }}+1)*distance;
+                    var next_unit_position_y = y_offset + {{ z }}*2.5*radius + {{ (1-(neural_net['network_info']['layer_sizes'][x+1]/6)) }} * (190-radius-y_offset/2);
+                    s.line(unit_position_x +radius, unit_position_y, next_unit_position_x- radius, next_unit_position_y).attr({
                         stroke: "#888",
                         strokeWidth: 1,
                         strokeDasharray: "2 1",
@@ -75,10 +106,10 @@
                 {% endfor %}
             {% endif %}
 
-            s.circle({{ unit_position_x }}, {{ unit_position_y }}, {{ radius }}).attr({
+            s.circle(unit_position_x, unit_position_y, radius).attr({
                 fill: "#fff",
                 fillOpacity: 0.0,
-                stroke: "#85CE36",
+                stroke: "#e74c3c",
                 strokeWidth: 2
             });
         {% endfor %}
@@ -122,6 +153,151 @@
         }, options);
     {% endfor %}
 
+    {% for input_data in neural_net['input_data'] %}
+        var trace_{{ loop.index0 }} = {
+            x: data['input_data'][{{ loop.index0 }}]['x'],
+            y: data['input_data'][{{ loop.index0 }}]['y'],
+            z: data['input_data'][{{ loop.index0 }}]['z'],
+            mode: 'markers',
+            marker: {
+                size: 5,
+                color: data['input_data'][{{ loop.index0 }}]['c'],
+                colorscale: 'Viridis',
+                opacity: 1
+            },
+            type: 'scatter3d',
+        };
+
+        var data_3d_{{ loop.index0 }} = [trace_{{ loop.index0 }}];
+        var layout = {
+            width: width,
+            height: window.innerHeight,
+            margin: {
+                l: 0,
+                r: 0,
+                b: 0,
+                t: 0
+            },
+            hovermode: false,
+            scene: {
+                xaxis: {
+                    title: '',
+                    autorange: true,
+                    showgrid: false,
+                    zeroline: false,
+                    showline: false,
+                    autotick: true,
+                    ticks: '',
+                    showticklabels: false,
+                    showspikes: false
+                },
+                yaxis: {
+                    title: '',
+                    autorange: true,
+                    showgrid: false,
+                    zeroline: false,
+                    showline: false,
+                    autotick: true,
+                    ticks: '',
+                    showticklabels: false,
+                    showspikes: false
+                },
+                zaxis: {
+                    title: '',
+                    autorange: true,
+                    showgrid: false,
+                    zeroline: false,
+                    showline: false,
+                    autotick: true,
+                    ticks: '',
+                    showticklabels: false,
+                    showspikes: false,
+                    showbackground: true,
+                    backgroundcolor: "rgb(170, 170, 170)"
+                },
+                camera: {
+                    center: {x: 0, y: 0.05, z: -0.1},
+                    eye: {x:1.6, y:0.05, z:0.4},
+                    up: {x: 0, y: 0, z: 1}
+                }
+            },
+            paper_bgcolor: 'rgba(0,0,0,0)',
+        };
+
+        Plotly.newPlot('input_data_div_{{ loop.index0 }}', data_3d_{{ loop.index0 }}, layout, {displayModeBar: false});
+
+    {% endfor %}
+
+
+    {# ===================  POPUP CODE   =================== #}
+
+    (function () {
+        {% for input_data in neural_net['input_data'] %}
+            var in{{ loop.index0 }} = document.getElementById('input_data_div_{{ loop.index0 }}');
+
+            in{{ loop.index0 }}.style.left = {{ loop.index0 }}*width + 'px';
+        {% endfor %}
+    })();
+
+    var currentView = 0;
+    var maxViews = {{ num_inputs }};
+
+    function openPopup(id){
+        var overlay = document.getElementById(id);
+
+        overlay.style.transform = "scale(1)";
+        openCloseButton();
+    }
+
+    function closePopup(id){
+        var overlay = document.getElementById(id);
+
+        overlay.style.transform = "scale(0)";
+        closeCloseButton();
+    }
+
+    function openCloseButton() {
+        var closeButton = document.getElementById('close-button');
+
+        closeButton.style.display = "block";
+
+        setTimeout(function () {
+            closeButton.style.opacity = "1";
+        }, 400);
+    }
+
+
+    function closeCloseButton() {
+        var closeButton = document.getElementById('close-button');
+
+        closeButton.style.opacity = "0";
+
+        setTimeout(function () {
+            closeButton.style.display = "none";
+        }, 500);
+    }
+
+    function rotateRight(){
+        var carousel = document.getElementById('carousel-content');
+        var width = carousel.parentElement.clientWidth;
+
+        if(currentView < maxViews-1) {
+            currentView++;
+        }
+
+        carousel.style.marginLeft = -currentView*100+"%";
+    }
+
+    function rotateLeft(){
+        var carousel = document.getElementById('carousel-content');
+        var width = carousel.parentElement.clientWidth;
+
+        if(currentView > 0) {
+            currentView--;
+        }
+
+        carousel.style.marginLeft = -currentView*100+"%";
+    }
 
 </script>
 {% endblock %}

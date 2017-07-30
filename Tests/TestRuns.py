@@ -3,6 +3,7 @@ import numpy as np
 import Data.data_manager as DataManager
 import Utils.visualizer as Visualizer
 import Training.cost_model as cost_model
+import Utils.feature_manager as FM
 
 from NeuralNetwork.neural_network import NeuralNetwork as NeuralNetwork
 from Training.gradient_descent import GradientDescentOptimizer as GradientDescentOptimizer
@@ -16,9 +17,9 @@ from parameters import GradientDescentParameters as GradientDescentParameters
 def neural_net_test(Optimizer: callable(GradientDescentOptimizer), batch_size: int = 60, epochs: int = 2, visualize: bool = False, network_name: str = None):
     # define network architecture
     network = NeuralNetwork(784, name=network_name)
-    network.add_hidden_layer(300)
-    network.add_hidden_layer(300)
-    network.add_hidden_layer(300)
+    network.add_hidden_layer(200)
+    network.add_hidden_layer(200)
+    network.add_hidden_layer(50)
     network.add_output_layer(10)
 
     # set parameters
@@ -33,6 +34,10 @@ def neural_net_test(Optimizer: callable(GradientDescentOptimizer), batch_size: i
 
     # create a log handler who will handle the logging of the progress
     log_handler = LogHandler()
+
+    log_handler.add_data_set(X, y, subset_size=5000)
+    log_handler.add_data_set(X_val, y_val, subset_size=5000)
+    log_handler.add_data_set(X_test, y_test, subset_size=5000)
 
     # add a few data sets on which we want to monitor the network's accuracy to the log handler
     log_handler.gd_log_parameters.add_accuracy_monitor(X, y, name="Training Set", subset_size=500)

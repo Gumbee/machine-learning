@@ -32,7 +32,7 @@ def get_neural_networks():
 
 
 def get_net_info(net_id: str):
-    neural_net = {'trainings': [], 'network_info': []}
+    neural_net = {'trainings': [], 'network_info': [], 'input_data': []}
 
     path = os_path.join(ROOT_DIR, 'Logs/NeuralNets')
 
@@ -50,6 +50,9 @@ def get_net_info(net_id: str):
                         # only add the neural net's info to the dict if we haven't done so yet
                         if len(neural_net['network_info']) == 0:
                             neural_net['network_info'] = log_data['network_info']
+
+                            for input_data in log_data['input_data']:
+                                neural_net['input_data'].append(input_data)
 
                             layers = neural_net['network_info']['layers']
                             # the amount of units to be displayed on the board when approximating the shape of the NN
@@ -91,7 +94,7 @@ def get_net_info(net_id: str):
 
 
 def get_net_training_info(net_id: str, session_id: str):
-    neural_net = {'training': {}, 'network_info': []}
+    neural_net = {'training': {}, 'network_info': [], 'input_data': []}
 
     path = os_path.join(ROOT_DIR, 'Logs/NeuralNets')
 
@@ -115,6 +118,9 @@ def get_net_training_info(net_id: str, session_id: str):
                             # if it is the training we seek to get information on, add it
                             if training == session_id:
                                 neural_net['training'] = log_data['training_sessions'][training]
+
+                        for input_data in log_data['input_data']:
+                            neural_net['input_data'].append(input_data)
 
                     continue
 

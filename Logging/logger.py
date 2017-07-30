@@ -1,6 +1,7 @@
 from os import makedirs as os_makedirs
 from os import path as os_path
 
+import Utils.feature_manager as FM
 import numpy as np
 import pickle
 import uuid
@@ -18,7 +19,8 @@ class LogHandler(object):
 
     def __init__(self, gd_log_parameters: GDLoggingParameters = None):
         self.gd_log_parameters = gd_log_parameters or GDLoggingParameters()
-        self.log_dict = {'training_sessions': {}}
+        self.log_dict = {'training_sessions': {}, 'input_data': []}
+        self.eigenvectors = None
 
     def log_gd_progress(self, session_id: str, epoch_num: int, batch_num: int, init_theta: np.matrix, X: np.matrix, y: np.matrix, gd_parameters: GradientDescentParameters):
         # get relevant gradient descent parameters
@@ -88,7 +90,16 @@ class LogHandler(object):
             self.print_table_entry(0, 1, initial_error, initial_error, 1.00)
 
             session_id = uuid.uuid4().hex
-            self.log_dict['training_sessions'][session_id] = {'entries': [], 'epochs': [], 'costs': [], 'accuracies': [], 'accuracies_names': [], 'rel_chngs': [], 'entry_num': 0, 'rel_chng': 0, 'prev_cst': 0}
+            self.log_dict['training_sessions'][session_id] = {'entries': [],
+                                                              'epochs': [],
+                                                              'costs': [],
+                                                              'accuracies': [],
+                                                              'accuracies_names': [],
+                                                              'rel_chngs': [],
+                                                              'entry_num': 0,
+                                                              'rel_chng': 0,
+                                                              'prev_cst': 0}
+
             self.add_gd_entry(session_id, 0, 1, initial_error, initial_error)
 
             if len(self.log_dict['training_sessions'][session_id]['accuracies']) < self.gd_log_parameters.num_accuracy_monitors:
@@ -111,6 +122,41 @@ class LogHandler(object):
 
     def add_gd_acc_entry(self, session_id: str, idx: int, accuracy: float):
         self.log_dict['training_sessions'][session_id]['accuracies'][idx].append(accuracy)
+
+    def add_data_set(self, X: np.matrix, classes: np.array, subset_size: int = -1):
+        if self.eigenvectors is None:
+            _, self.eigenvectors = FM.pca(X, 3)
+
+        # if we have a two dimensional class set we have to process the additional data
+        if classes.ndim > 1:
+            m, n = classes.shape
+            classes_tmp = np.zeros(m)
+
+            # if we only have one value per row, take that as class
+            if n == 1:
+                classes_tmp = classes.ravel()
+            else:
+                # iterate over each column and set the class of the example
+                # as the index of the column with the highest value
+                for i in range(m):
+                    classes_tmp[i] = np.where(classes[i] == max(classes[i]))[0]
+
+            classes = classes_tmp
+
+        if subset_size > 0:
+            idx = np.random.permutation(X.shape[0])
+            Z = FM.project_data(X[idx[0:min(subset_size, X.shape[0])], :], self.eigenvectors, 3)
+            c = classes[idx[0:min(subset_size, X.shape[0])]]
+        else:
+            Z = FM.project_data(X, self.eigenvectors, 3)
+            c = classes
+
+        x = np.ndarray.tolist(Z[:, 0])
+        y = np.ndarray.tolist(Z[:, 1])
+        z = np.ndarray.tolist(Z[:, 2])
+        c = np.ndarray.tolist(c)
+
+        self.log_dict['input_data'].append({'x': x, 'y': y, 'z': z, 'c': c})
 
     def register_network(self, network):
         self.log_dict['network_info'] = {}

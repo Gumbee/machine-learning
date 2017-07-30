@@ -6,12 +6,11 @@ body {
 
 .wrapper {
     width: 100%;
-    min-height: 800px;
     display: flex;
 }
 
 nav {
-    background-color: #d7dde4;
+    background-color: #EEE;
     padding-left: 20px;
     padding-right: 20px;
     height: 70px;
@@ -26,7 +25,7 @@ nav[shadow] {
 }
 
 nav .brand-logo, nav ul a {
-    color: #6E7C8A;
+    color: #666;
 }
 
 .sidebar {
@@ -35,9 +34,9 @@ nav .brand-logo, nav ul a {
     min-width: 250px;
     min-height:100%;
     float: left;
-    background-color: #4f5f6f;
+    background-color: #c0392b;
     box-shadow: 0px 0px 5px 2px rgba(0,0,0,0.33);
-    z-index: 2;
+    z-index: 3;
 }
 
 .sidebar .logo {
@@ -47,10 +46,10 @@ nav .brand-logo, nav ul a {
     line-height: 70px;
     text-align: center;
     vertical-align: middle;
-    background-color: #445261;
+    background-color: #c0392b;
     font-size: 2.1rem;
     font-weight: 300;
-    color: #8EE036;
+    color: #eee;
 }
 
 .sidebar .logo img {
@@ -89,7 +88,7 @@ nav .brand-logo, nav ul a {
 }
 
 .sidebar ul li:hover {
-    background-color: #3B4854;
+    background-color: #A12C20;
 }
 
 .sidebar ul li i {
@@ -118,11 +117,11 @@ nav .brand-logo, nav ul a {
 }
 
 .sidebar ul li[active] {
-    background-color: #3B4854;
+    background-color: #A12C20;
 }
 
 .sidebar ul li[active] {
-    border-left: 6px solid #85CE36;
+    border-left: 6px solid #301613;
 }
 
 .menubar {
@@ -143,7 +142,7 @@ nav .brand-logo, nav ul a {
     /*padding-top: 5px;*/
     height: 30px;
     line-height: 30px;
-    background-color: #F9F9F9;
+    background-color: #EEE;
 }
 
 .breadcrumb, .breadcrumb::before {
@@ -179,26 +178,21 @@ nav .brand-logo, nav ul a {
     padding-right: 20px;
     padding-top: 10px;
     color: #4f5f6f;
+    position: relative;
 }
 
 .neural-net-card {
     width: 100%;
     height: auto;
-    background-color: #546e7a;
+    min-height: 35px;
+    background-color: #F5F5F5;
     position: relative;
     margin-bottom: 10px;
-    /*box-shadow: 0px 2px 2px 0px rgba(0,0,0,0.41);*/
+    box-shadow: 0px 1px 2px -1px rgba(0,0,0,0.31);
 }
 
-.neural-net-card .logo {
-    width: 120px;
-    height: auto;
-    background-color: #6E7C8A;
-    float: left;
-    position: absolute;
-    top: 0;
-    bottom: 0;
-    white-space: nowrap;
+.neural-net-card.no-shadow{
+    box-shadow: none;
 }
 
 .neural-net-card .logo .helper {
@@ -214,14 +208,19 @@ nav .brand-logo, nav ul a {
 
 .neural-net-card .content {
     height: 100%;
-    padding: 10px 10px 10px 140px;
-    color: #DDD;
+    padding: 15px 14px;
+    color: #888;
     overflow: none;
 }
 
 .neural-net-card .content .card-title {
-    font-size: 1.2rem;
-    color: #CCC;
+    font-size: 1.6rem;
+    color: #777;
+}
+
+.neural-net-card .content .card-title a {
+    font-size: 1.6rem;
+    color: #777;
 }
 
 .neural-net-card .content .neural-net-stats span {
@@ -232,7 +231,7 @@ nav .brand-logo, nav ul a {
 
 .neural-net-card .content .neural-net-stats span .value {
     font-size: 1.4rem;
-    color: #ccc;
+    color: #999;
 }
 
 .view-content .title {
@@ -250,6 +249,12 @@ nav .brand-logo, nav ul a {
     color: #6E7C8A;
 }
 
+.link-list a {
+    color: #666;
+    font-size: 1.2rem;
+    padding-top: 7px;
+    padding-bottom: 7px;
+}
 
 /* ----------- Chart Stuff ----------- */
 
@@ -326,3 +331,58 @@ nav .brand-logo, nav ul a {
     background-color: #59922b;
     border-color: #59922b;
 }
+
+/* ----------- Overlay Stuff ----------- */
+
+.overlay{
+    background-color: #DDD;
+    position: fixed;
+    left: 250px;
+    right: 0;
+    top: 0;
+    bottom: 0;
+    margin-left: auto;
+    margin-right: auto;
+    z-index: 2;
+    transition: all .4s ease-in-out;
+    transform: scale(0);
+    box-shadow: 0px 4px 14px -4px rgba(0,0,0,0.71);
+    overflow: auto;
+    white-space: nowrap;
+}
+
+.close-button {
+    opacity: 0;
+    display: none;
+    transition: all .5s ease-in-out;
+}
+
+.carousel-content{
+    position: relative;
+    transition: all .5s ease-in-out;
+}
+
+.carousel-title{
+    position: absolute;
+    top: 10px;
+    left: 30px;
+    font-size: 2rem;
+}
+
+.disabled {
+    pointer-events: none;
+    color: #AAA !important;
+}
+
+.disabled i {
+    color: #AAA !important;
+}
+/* ----------- Materialize Override Stuff ----------- */
+
+.full-width-container .col.s6:nth-child(even) {
+    float: left;
+    box-sizing: border-box;
+    padding: 0 0;
+    min-height: 1px;
+}
+
