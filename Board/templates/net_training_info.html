@@ -50,7 +50,7 @@
 <div class="sub-title" style="padding-bottom: 10px;">Accuracies</div>
 <!-- Accuracies -->
 <div style="margin-top:0px;width: 100%;float:left;display: block;">
-    <div class="ct-chart ct-tracker" id="chart_tracker"></div>
+    <div class="ct-chart ct-monitor" id="chart_monitor"></div>
 </div>
 {% endif %}
 
@@ -59,19 +59,23 @@
 <!--  ================ Charts initialization ================ -->
 {% block scripts %}
 <script type="text/javascript">
-    {# convert python's True and False to js true and false #}
+    // convert python's True and False to js true and false
     var True = true;
     var False = false;
+    // get the data
     var data = {{ neural_net|safe }};
     console.log(data);
 
+    // get the x-axis and y-axis values
     var values = data['training']['costs'];
     var x_axis = data['training']['entries'];
 
+    // get the x-axis and y-axis values (excluding the anomalies)
     var values_without_anom = data['training']['costs_without_anom'];
     var x_axis_without_anom = data['training']['entries_without_anom'];
 
     document.addEventListener('DOMContentLoaded',function(){
+        // define the cart properties
         var options = {
             fullWidth: true,
             height: '300px',
@@ -92,6 +96,7 @@
             }
         };
 
+        // create the chart with anomalies
         new Chartist.Line('#chart_with_anomalies', {
             labels: x_axis,
             series: [
@@ -99,6 +104,7 @@
                     ]
         }, options);
 
+        // if there are anomalies create the chart without anomalies
         if(x_axis_without_anom.length != x_axis.length) {
             new Chartist.Line('#chart_without_anomalies', {
                 labels: x_axis_without_anom,
@@ -108,7 +114,8 @@
             }, options);
         }
 
-        var options_tracker = {
+        // define the options for the chart displaying the accuracies of the datasets that we monitor
+        var options_monitor = {
             fullWidth: true,
             height: '300px',
             chartPadding: {
@@ -129,7 +136,7 @@
             plugins: [
                 Chartist.plugins.legend({
                     legendNames: [
-                        {% for tracker in neural_net['training']['accuracies'] %}
+                        {% for monitor in neural_net['training']['accuracies'] %}
                             data['training']['accuracies_names'][{{ loop.index0 }}],
                         {% endfor %}
                     ],
@@ -137,14 +144,15 @@
             ]
         };
 
-        new Chartist.Line('#chart_tracker', {
+        // create the chart
+        new Chartist.Line('#chart_monitor', {
             labels: x_axis,
             series: [
-                    {% for tracker in neural_net['training']['accuracies'] %}
+                    {% for monitor in neural_net['training']['accuracies'] %}
                         data['training']['accuracies'][{{ loop.index0 }}],
                     {% endfor %}
                     ]
-        }, options_tracker);
+        }, options_monitor);
 
     });
 </script>

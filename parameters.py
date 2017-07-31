@@ -37,7 +37,7 @@ class GDLoggingParameters(object):
     cost_eval_subset_size = 5000
     log_file_name = 'gd_log_'
 
-    accuracy_trackers = []
+    accuracy_monitors = []
     accuracy_func = None
     prediction_threshold = 0.0
 
@@ -54,7 +54,7 @@ class GDLoggingParameters(object):
             m, n = X.shape
             idx = np.random.permutation(m)
 
-            self.accuracy_trackers.append({
+            self.accuracy_monitors.append({
                 'X': X[idx[0:min(subset_size, m)], :],
                 'y': y[idx[0:min(subset_size, m)], :],
                 'idx': self.num_accuracy_monitors,
@@ -62,7 +62,7 @@ class GDLoggingParameters(object):
             })
             self.num_accuracy_monitors += 1
         else:
-            self.accuracy_trackers.append({
+            self.accuracy_monitors.append({
                 'X': X,
                 'y': y,
                 'idx': self.num_accuracy_monitors,

@@ -12,25 +12,6 @@
 <!--  ================ Content ================ -->
 {% set num_inputs = neural_net['input_data'] | length %}
 {% block content %}
-<div class="overlay" id="overlay">
-    <a class="waves-effect waves-light btn-floating btn-flat close-button" style="position:absolute;right: 20px;top:20px;" id="close-button" onclick="closePopup('overlay')">
-        <i class="material-icons" style="color:#777;font-size: 2rem;">close</i>
-    </a>
-    <a class="waves-effect waves-light btn-floating btn-flat btn-large" style="position:absolute;left: 20px;top:0;bottom: 0;margin-top:auto;margin-bottom:auto;" onclick="rotateLeft()">
-        <i class="material-icons" style="color:#777;font-size: 5rem;margin-left: -22px;margin-top:2px;">keyboard_arrow_left</i>
-    </a>
-    <a class="waves-effect waves-light btn-floating btn-flat btn-large" style="position:absolute;right: 20px;top:0;bottom: 0;margin-top:auto;margin-bottom:auto;" onclick="rotateRight()">
-        <i class="material-icons" style="color:#777;font-size: 5rem;margin-left: -12px;margin-top:1px;">keyboard_arrow_right</i>
-    </a>
-
-    <div id="carousel-content" class="carousel-content">
-        {% for input_data in neural_net['input_data'] %}
-        <div class="input-container" id="input_data_div_{{ loop.index0 }}" style="position:absolute;">
-            <span class="carousel-title">Dataset {{ loop.index }}</span>
-        </div>
-        {% endfor %}
-    </div>
-</div>
 <div>
     <span class="title">{{neural_net['network_info']['name']}}</span><span class="small-title">{{ net_id }}</span>
 </div>
@@ -68,6 +49,26 @@
     </div>
 </div>
 
+<!--  ==== Overlay ==== -->
+<div class="overlay" id="overlay">
+    <a class="waves-effect waves-light btn-floating btn-flat close-button" style="position:absolute;right: 20px;top:20px;" id="close-button" onclick="closePopup('overlay')">
+        <i class="material-icons" style="color:#777;font-size: 2rem;">close</i>
+    </a>
+    <a class="waves-effect waves-light btn-floating btn-flat btn-large" style="position:absolute;left: 20px;top:0;bottom: 0;margin-top:auto;margin-bottom:auto;" onclick="rotateLeft()">
+        <i class="material-icons" style="color:#777;font-size: 5rem;margin-left: -22px;margin-top:2px;">keyboard_arrow_left</i>
+    </a>
+    <a class="waves-effect waves-light btn-floating btn-flat btn-large" style="position:absolute;right: 20px;top:0;bottom: 0;margin-top:auto;margin-bottom:auto;" onclick="rotateRight()">
+        <i class="material-icons" style="color:#777;font-size: 5rem;margin-left: -12px;margin-top:1px;">keyboard_arrow_right</i>
+    </a>
+
+    <div id="carousel-content" class="carousel-content">
+        {% for input_data in neural_net['input_data'] %}
+        <div class="input-container" id="input_data_div_{{ loop.index0 }}" style="position:absolute;">
+            <span class="carousel-title">Dataset {{ loop.index }}</span>
+        </div>
+        {% endfor %}
+    </div>
+</div>
 {% endblock %}
 
 <!--  ================ Draw the network with snap.svg ================ -->
@@ -75,28 +76,38 @@
 <script>
     var s = Snap("#snap");
 
+    // Get the data
     var trainings = {{neural_net['trainings'] | safe}};
-    console.log(trainings);
 
-
+    // get the container's width so we can adjust our drawing of the net to the width
     var container = document.getElementById("view-content");
     var width = container.clientWidth;
-    var height = container.clientHeight;
 
+    // define the number of layers (network layers)
     {% set layer_size = neural_net['network_info']['layers'] | length %}
+    // iterate over all layers and draw them
     {% for x in range(0, layer_size) %}
+        // define some parameters we will use to draw the net
         var x_offset = 50;
         var y_offset = 60;
+        // radius of the circles we draw
         var radius = 20;
+        // calculate the distance between the each layers
         var distance = (width+width*0.15)/{{ layer_size}} - {{  layer_size*4 }}
         {% for y in range(0, neural_net['network_info']['layer_sizes'][x]) %}
+            // calculate the unit's x and y position
             var unit_position_x = x_offset + {{ x }}*distance;
             var unit_position_y = y_offset + {{ y*2.5 }}*radius + {{ (1-(neural_net['network_info']['layer_sizes'][x]/6))}} * (190-radius-y_offset/2);
 
+            // draw the connections between the unit and the next layer's units
             {% if x+1 < layer_size %}
                 {% for z in range(0, neural_net['network_info']['layer_sizes'][x+1]) %}
+                    // calculate the next layer's unit's position (redundant because we calculate
+                    // it in the next iteration again, but it's a quick implementation)
                     var next_unit_position_x = x_offset + ({{ x }}+1)*distance;
                     var next_unit_position_y = y_offset + {{ z }}*2.5*radius + {{ (1-(neural_net['network_info']['layer_sizes'][x+1]/6)) }} * (190-radius-y_offset/2);
+
+                    // draw the line
                     s.line(unit_position_x +radius, unit_position_y, next_unit_position_x- radius, next_unit_position_y).attr({
                         stroke: "#888",
                         strokeWidth: 1,
@@ -106,6 +117,7 @@
                 {% endfor %}
             {% endif %}
 
+            // draw the unit
             s.circle(unit_position_x, unit_position_y, radius).attr({
                 fill: "#fff",
                 fillOpacity: 0.0,
@@ -115,43 +127,11 @@
         {% endfor %}
     {% endfor %}
 
+    // convert python's True and False to js true and false
     var True = true;
     var False = false;
     var data = {{ neural_net|safe }};
     console.log(data);
-
-    var options = {
-        fullWidth: true,
-        chartPadding: {
-            right: 40,
-            left: 0
-        },
-        axisX: {
-            labelInterpolationFnc: function (value, index) {
-                return index % 10 === 0 ? value : null;
-            },
-            showGrid: false,
-        },
-        axisY: {
-            labelInterpolationFnc: function (value) {
-                return Math.round(value * 100) / 100;
-            },
-        },
-    };
-
-    {% for training in neural_net['trainings'] %}
-        var elem{{ loop.index0 }} = data['trainings'][{{ loop.index0 }}];
-        var values{{ loop.index0 }} = elem{{ loop.index0 }}['costs'];
-        var x_axis{{ loop.index0 }} = elem{{ loop.index0 }}['entries'];
-
-
-        new Chartist.Line('#chart{{ loop.index0 }}', {
-            labels: x_axis{{ loop.index0 }},
-            series: [
-                        values{{ loop.index0 }}
-                    ]
-        }, options);
-    {% endfor %}
 
     {% for input_data in neural_net['input_data'] %}
         var trace_{{ loop.index0 }} = {
@@ -229,7 +209,7 @@
     {% endfor %}
 
 
-    {# ===================  POPUP CODE   =================== #}
+    {# ===================  POPUP-CAROUSEL CODE   =================== #}
 
     (function () {
         {% for input_data in neural_net['input_data'] %}
