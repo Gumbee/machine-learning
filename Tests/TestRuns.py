@@ -47,9 +47,6 @@ def neural_net_test(Optimizer: callable(GradientDescentOptimizer), batch_size: i
     t = time.time()
     network.train(X, y, Optimizer, gd_params, log_handler)
     network.train(X, y, Optimizer, gd_params, log_handler)
-    network.train(X, y, Optimizer, gd_params, log_handler)
-    network.train(X, y, Optimizer, gd_params, log_handler)
-    network.train(X, y, Optimizer, gd_params, log_handler)
     t = time.time()-t
     print("\nProcess finished in", '{:6.3f}'.format(t), 'seconds\n')
 

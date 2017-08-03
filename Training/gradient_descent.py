@@ -6,7 +6,10 @@ from parameters import GradientDescentParameters as GradientDescentParameters
 
 
 class GradientDescentOptimizer(object):
-
+    """
+    Optimizer base class which optimizes parameters, given a cost function and its gradient function.
+    
+    """
     def train(self, current_theta, X: np.matrix, y: np.matrix, gd_parameters: GradientDescentParameters, log_handler: LogHandler = None):
         """
         Trains the parameters in init_theta to minimize the provided cost function.
@@ -38,14 +41,17 @@ class GradientDescentOptimizer(object):
 
         m, _ = X.shape
 
+        # open a logging session and get its id
         session_id = log_handler.open_gd_session(initial_error)
 
+        # perform any preparations needed
         self.prepare_variables(current_theta)
 
+        # get a random permutation of the indices so we don't always use the same order when training
+        # with the batches
         idx = np.random.permutation(m)
 
         for i in range(0, epochs):
-
             # train all the batches
             for x in range(0, m, batch_size):
                 # determine at which index the current batch ends
@@ -71,18 +77,27 @@ class GradientDescentOptimizer(object):
                 # perform post-update calculations if necessary
                 self.post_update(delta)
 
+                # log the progress
                 log_handler.log_gd_progress(session_id, epoch_num=i, batch_num=x, current_theta=current_theta, X=X, y=y, gd_parameters=gd_parameters)
 
                 if callback is not None:
                     callback(current_theta, X, i, **callback_args)
 
-        print('\033[91m', '\n{:<15s}'.format('Initial Error:'), '{:5.6e}'.format(initial_error),
-              '\n{:<15s}'.format('New Error:'),
+        # print the old error and the new one
+        print('\033[91m', '\n{:<15s}'.format('Initial Error:'), '{:5.6e}'.format(initial_error), '\n{:<15s}'.format('New Error:'),
               '{:>5.6e}'.format(cost_func(current_theta, X, y, reg_lambda, **func_args)), '\033[0m')
 
+        # close the logging session
         log_handler.close_gd_session()
 
     def delta(self, alpha: float, gradients):
+        """
+        Calculates the change that needs to be applied to the weights in order to step towards a better model.
+        
+        :param alpha:       The learning rate
+        :param gradients:   The gradients
+        :return:            The values by which the current weights are changed
+        """
         if isinstance(gradients, list):
             for i in range(0, len(gradients)):
                 gradients[i] *= alpha
