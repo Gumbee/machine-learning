@@ -17,10 +17,10 @@ class GradientDescentParameters(object):
                         and the current iteration number as parameters. Additional parameters can be specified via callback_args
     callback_args:      (optional) Additional parameters that should be passed to the callback function
     """
-    epochs = 10
+    epochs = 2
     batch_size = 32
     learning_rate = 0.1
-    reg_lambda = 1.
+    reg_lambda = 0.
     cost_func = None
     gradient_func = None
     func_args = {}

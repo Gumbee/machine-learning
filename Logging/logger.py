@@ -105,11 +105,11 @@ class LogHandler(object):
         if len(monitors) == 0:
             return
 
-        # iterate over all datasets and add the accuracy to the log
-        for dataset in monitors:
-            accuracy = accuracy_func(dataset['X'], dataset['y'], threshold=threshold)
+        # iterate over all data sets and add the accuracy to the log
+        for data_set in monitors:
+            accuracy = accuracy_func(data_set['X'], data_set['y'], threshold=threshold)
             # log progress
-            self.log_dict['training_sessions'][session_id]['accuracies'][dataset['idx']].append(accuracy)
+            self.log_dict['training_sessions'][session_id]['accuracies'][data_set['idx']].append(accuracy)
 
     def open_gd_session(self, initial_error: float):
         """
@@ -144,9 +144,12 @@ class LogHandler(object):
             # add the first entry (initial error) to the log
             self.add_gd_entry(session_id, 1, initial_error, initial_error)
 
+            # get the number of data sets whose accuracies we monitor
+            num_monitors = len(self.log_dict['training_sessions'][session_id]['accuracies'])
+
             # if we have some accuracy monitor we haven't added to the log yet, add them
-            if len(self.log_dict['training_sessions'][session_id]['accuracies']) < self.gd_log_parameters.num_accuracy_monitors:
-                for i in range(len(self.log_dict['training_sessions'][session_id]['accuracies']), self.gd_log_parameters.num_accuracy_monitors):
+            if num_monitors < self.gd_log_parameters.num_accuracy_monitors:
+                for i in range(num_monitors, self.gd_log_parameters.num_accuracy_monitors):
                     self.log_dict['training_sessions'][session_id]['accuracies'].append([])
                     self.log_dict['training_sessions'][session_id]['accuracies_names'].append(self.gd_log_parameters.accuracy_monitors[i]['name'])
 
@@ -232,6 +235,9 @@ class LogHandler(object):
 
         # add the processed data to the log
         self.log_dict['input_data'].append({'x': x, 'y': y, 'z': z, 'c': c})
+
+    def add_accuracy_monitor(self, X, y, subset_size=-1, name=''):
+        self.gd_log_parameters.add_accuracy_monitor(X, y, subset_size, name)
 
     def register_network(self, network):
         """

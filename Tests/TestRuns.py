@@ -4,10 +4,10 @@ import time
 import Training.cost_model as cost_model
 import Utils.visualizer as Visualizer
 
-from Logging.logger import LogHandler as LogHandler
-from NeuralNetwork.neural_network import NeuralNetwork as NeuralNetwork
-from Training.gradient_descent import GradientDescentOptimizer as GradientDescentOptimizer
-from Utils.anomaly_detector import AnomalyDetector as AnomalyDetector
+from Logging.logger import LogHandler
+from NeuralNetwork.neural_network import NeuralNetwork
+from Training.gradient_descent import GradientDescentOptimizer
+from Utils.anomaly_detector import AnomalyDetector
 
 from parameters import GradientDescentParameters as GradientDescentParameters
 
@@ -39,9 +39,9 @@ def neural_net_test(Optimizer: callable(GradientDescentOptimizer), batch_size: i
     log_handler.add_data_set(X_test, y_test, subset_size=5000)
 
     # add a few data sets on which we want to monitor the network's accuracy to the log handler
-    log_handler.gd_log_parameters.add_accuracy_monitor(X, y, name="Training Set", subset_size=500)
-    log_handler.gd_log_parameters.add_accuracy_monitor(X_val, y_val, name="Validation Set", subset_size=500)
-    log_handler.gd_log_parameters.add_accuracy_monitor(X_test, y_test, name="Test Set", subset_size=500)
+    log_handler.add_accuracy_monitor(X, y, name="Training Set", subset_size=500)
+    log_handler.add_accuracy_monitor(X_val, y_val, name="Validation Set", subset_size=500)
+    log_handler.add_accuracy_monitor(X_test, y_test, name="Test Set", subset_size=500)
 
     # train the network and output the duration it took to train the net
     t = time.time()
@@ -91,9 +91,9 @@ def nn_optimizer_comparison(OptimizerA: callable(GradientDescentOptimizer), Opti
     log_handler.add_data_set(X_test, y_test, subset_size=5000)
 
     # add a few data sets on which we want to monitor the network's accuracy to the log handler
-    log_handler.gd_log_parameters.add_accuracy_monitor(X, y, name="Training Set", subset_size=500)
-    log_handler.gd_log_parameters.add_accuracy_monitor(X_val, y_val, name="Validation Set", subset_size=500)
-    log_handler.gd_log_parameters.add_accuracy_monitor(X_test, y_test, name="Test Set", subset_size=500)
+    log_handler.add_accuracy_monitor(X, y, name="Training Set", subset_size=500)
+    log_handler.add_accuracy_monitor(X_val, y_val, name="Validation Set", subset_size=500)
+    log_handler.add_accuracy_monitor(X_test, y_test, name="Test Set", subset_size=500)
 
     print()
     print(OptimizerA.__name__, "  -------------------------------------")
