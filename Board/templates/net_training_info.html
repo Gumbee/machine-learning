@@ -21,11 +21,14 @@
 -->
 {% if num_without_anomalies != num_with_anomalies and num_without_anomalies > 0  %}
 <div style="width: 50%;float: left;height: 50px;position: relative;">
+    <div style="width: 50%;float: left;height: 50px;position: relative;margin-top:40px;">
+        <span class="sub-title" style="position: absolute;bottom: 0;padding-left: 10px;">Loss Graph</span>
+    </div>
     <div style="position: absolute;bottom: 0;">
         <span class="title">{{neural_net['network_info']['name']}}</span><span class="small-title">{{ net_id }}</span>
     </div>
 </div>
-<div style="width: 50%;float: left;height: 50px;position: relative;">
+<div style="width: 50%;float: left;height: 50px;position: relative;margin-top:40px;">
     <span class="sub-title" style="position: absolute;bottom: 0;padding-left: 10px;">Graph without anomalies</span>
 </div>
 <div style="margin-top:0px;width: 50%;height: 300px;float:left;display: block;">

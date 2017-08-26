@@ -37,6 +37,12 @@ print('Accuracy Training Set: ', network.get_mean_correct(X, y))
 print('Accuracy Validation Set: ', network.get_mean_correct(X_val, y_val))
 ```
 
+## Board Screenshots
+##### Network Page
+![Board](http://i.imgur.com/GQ1tQY3.png)
+##### Dataset Visualization
+![Dataset](http://i.imgur.com/1cLafro.png)
+
 ## License
 MIT License
 
