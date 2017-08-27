@@ -99,26 +99,26 @@ def get_net_layer_sizes_approximation(network_info: list):
     max_units = layers[0]['units']
     max_units_index = 0
 
+    # the maximum number of units displayed on the board (in one layer)
+    scale = 7
+
     # calculate the ratios between the layers and find the layer with the most units
     for i in range(1, len(layers)):
-        layer_ratios.append((layers[i]['units'] * 1.0) / layers[i - 1]['units'])
-
         if max_units < layers[i]['units']:
             max_units = layers[i]['units']
             max_units_index = i
 
+    for i in range(0, len(layers)):
+        layer_ratios.append(((layers[i]['units'] * 1.0) / layers[max_units_index]['units']))
+
     # max amount of units to be displayed on the board
-    layer_sizes[max_units_index] = min(max_units, 7)
+    layer_sizes[max_units_index] = min(max_units, scale)
 
     # calculate the number of units for every layer left to the layer with the most units
     # based on the previously calculated ratios
-    for i in range(max_units_index - 1, -1, -1):
-        layer_sizes[i] = max(1, int(round(layer_sizes[i + 1] * (1.0 / layer_ratios[i]))))
-
-    # calculate the number of units for every layer right to the layer with the most units
-    # based on the previously calculated ratios
-    for i in range(max_units_index + 1, len(layer_sizes)):
-        layer_sizes[i] = max(1, int(round(layer_sizes[i - 1] * layer_ratios[i - 1])))
+    for i in range(0, len(layer_sizes)):
+        if i != max_units_index:
+            layer_sizes[i] = max(1, int(round(layer_sizes[max_units_index] * (layer_ratios[i]))))
 
     return layer_sizes
 
