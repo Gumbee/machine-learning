@@ -16,7 +16,6 @@ def neural_net_test(Optimizer: callable(GradientDescentOptimizer), batch_size: i
     # define network architecture
     network = NeuralNetwork(784, name=network_name)
     network.add_hidden_layer(200)
-    network.add_hidden_layer(300)
     network.add_hidden_layer(200)
     network.add_output_layer(10)
 
