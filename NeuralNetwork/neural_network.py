@@ -10,6 +10,8 @@ from parameters import GradientDescentParameters
 class NeuralNetwork(object):
     def __init__(self, input_units=5, EPSILON=0.12, name: str = None):
         print('Neural Network has', input_units, 'input units.')
+        self.id = uuid.uuid4().hex
+        self.name = name or 'Unnamed Neural Net'
         self.input_units = input_units
         self.has_output = False
         self.model = {'weights': [], 'layers': []}
@@ -19,10 +21,6 @@ class NeuralNetwork(object):
 
         # EPSILON is used to initialize the random weights matrix
         self.EPSILON = EPSILON
-
-        self.id = uuid.uuid4().hex
-
-        self.name = name or 'Unnamed Neural Net'
 
     # ======== Network Operations ========
 

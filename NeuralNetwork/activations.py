@@ -27,8 +27,8 @@ def sigmoid_gradient(z):
     :param z:   The input value
     :return:    The sigmoid function's gradient for that input z
     """
-    # np.clip is used to prevent overflowing
-    return np.multiply(z, (1 - z))
+    s = sigmoid_activation(z)
+    return np.multiply(s, (1 - s))
 
 
 # ======== Softmax Function ========
