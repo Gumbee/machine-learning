@@ -63,12 +63,13 @@ def get_net_info(net_id: str):
 
                     # only process the network if it is the right one
                     if log_data['network_info']['id'] == net_id:
+
+                        for input_data in log_data['input_data']:
+                            neural_net['input_data'].append(input_data)
+
                         # only add the neural net's info to the dict if we haven't done so yet
                         if len(neural_net['network_info']) == 0:
                             neural_net['network_info'] = log_data['network_info']
-
-                            for input_data in log_data['input_data']:
-                                neural_net['input_data'].append(input_data)
 
                             # get an approximation of the layer sizes (relative to each other) so we can
                             # display an approximation of the network on the board

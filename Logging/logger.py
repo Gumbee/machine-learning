@@ -88,8 +88,8 @@ class LogHandler(object):
         :param session_id: 
         :return: 
         """
-        # only monitor the accuracy if a mean to calculate the accuracy is provided
-        if self.gd_log_parameters.accuracy_func is None:
+        # only monitor the accuracy if a mean to calculate the accuracy is provided and we want to log the progress
+        if self.gd_log_parameters.accuracy_func is None or not self.gd_log_parameters.log_progress:
             return
 
         # get the data sets which we monitor
@@ -255,6 +255,9 @@ class LogHandler(object):
         """
         Writes the log to a file.
         """
+        if not self.gd_log_parameters.log_progress:
+            return
+
         # get the log folder's path and join it with the file name
         path = os_path.join(ROOT_DIR, 'Logs/' + self.gd_log_parameters.log_file_name + '.log')
 
