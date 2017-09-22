@@ -12,7 +12,8 @@ def get_neural_networks():
     """
     Finds all the neural networks in Logs/NeuralNets
     
-    :return: A list of all the neural networks
+    Returns: 
+        list:   a list of all the neural networks
     """
     neural_nets = []
 
@@ -42,8 +43,11 @@ def get_net_info(net_id: str):
     input data added to the network (only if the input was manually added to the log) and relvant network architecture
     information.
     
-    :param net_id:  The id of the network whose information should be gathered
-    :return:        A dictionary containing the relevant information
+    Args:
+        net_id (str):   The id of the network whose information should be gathered
+    
+    Returns:
+        dict:           a dictionary containing the relevant network information
     """
     neural_net = {'trainings': [], 'network_info': [], 'input_data': []}
 
@@ -82,44 +86,37 @@ def get_net_info(net_id: str):
     return neural_net
 
 
-def get_net_layer_sizes_approximation(network_info: list):
+def get_net_layer_sizes_approximation(network_info: dict):
     """
     Takes a neural network info list as input and calculates an approximation of the layer sizes so we can display
     the layer sizes approximation on the board (because the actual network layers usually have too much units to display
     nicely on a page)
     
-    :param network_info:    The network info list
-    :return:                The approximation of the layer sizes
+    Args:
+        network_info (dict):    The network info list
+    
+    Returns:
+        list:                   the approximation of the layer sizes
     """
     layers = network_info['layers']
     # the amount of units to be displayed on the board when approximating the shape of the NN
     layer_sizes = [0] * len(layers)
-    # used to calculate the amount of units to be displayed
-    layer_ratios = []
 
     max_units = layers[0]['units']
-    max_units_index = 0
 
     # the maximum number of units displayed on the board (in one layer)
     scale = 7
 
-    # calculate the ratios between the layers and find the layer with the most units
+    # find the layer with the most units
     for i in range(1, len(layers)):
         if max_units < layers[i]['units']:
             max_units = layers[i]['units']
-            max_units_index = i
 
-    for i in range(0, len(layers)):
-        layer_ratios.append(((layers[i]['units'] * 1.0) / layers[max_units_index]['units']))
+    factor = (min(max_units, scale)*1.0) / max_units
 
-    # max amount of units to be displayed on the board
-    layer_sizes[max_units_index] = min(max_units, scale)
-
-    # calculate the number of units for every layer left to the layer with the most units
-    # based on the previously calculated ratios
+    # set approximate number of units for every layer as number of units scaled by the previously calculated factor
     for i in range(0, len(layer_sizes)):
-        if i != max_units_index:
-            layer_sizes[i] = max(1, int(round(layer_sizes[max_units_index] * (layer_ratios[i]))))
+        layer_sizes[i] = max(1, int(round(layers[i]['units'] * factor)))
 
     return layer_sizes
 
@@ -172,9 +169,12 @@ def get_anomaly_free_data(entries: list, costs: list):
     """
     Takes a list of entries and outputs and finds all anomalies and removes them.
     
-    :param entries: The entries (x-axis)
-    :param costs:   The outputs (y-axis)
-    :return:        Anomaly free version of the input and output
+    Args:
+        entries (list):     The entries (x-axis)
+        costs (list):       The outputs (y-axis)
+        
+    Returns:
+        list, list:         anomaly free version of the input and output
     """
     entries = np.matrix(entries).T
     costs = np.matrix(costs).T

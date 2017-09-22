@@ -16,8 +16,8 @@ class AnomalyDetector(object):
         Trains the anomaly detector with a given data set. For now it is assumed that no entry in the data set correspond
         to an anomaly.
         
-        :param X:   The data set
-        :return:    None
+        Args:
+            X (np.matrix):   The data set
         """
         m, n = X.shape
 
@@ -36,8 +36,11 @@ class AnomalyDetector(object):
         """
         Calculates the hypothesis for each element in the data set.
         
-        :param X:   The data set
-        :return:    A Mx1 matrix with a hypothesis value for each element in the data set
+        Args:
+            X (np.matrix):  The data set
+        
+        Returns:
+            np.matrix:      A Mx1 matrix with a hypothesis value for each element in the data set
         """
         m, n = X.shape
 
@@ -61,8 +64,11 @@ class AnomalyDetector(object):
         Finds all anomalies in a given data set by searching for elements whose hypothesis value is
         below a certain value epsilon.
 
-        :param X:   The data set in which anomalies are tried to be captured
-        :return:    The anomalies
+        Args:
+            X (np.matrix):  The data set in which anomalies are tried to be captured
+        
+        Returns:
+            np.array:       The anomalies
         """
         p = self.hypothesis(X)
 
@@ -75,8 +81,11 @@ class AnomalyDetector(object):
         Finds all anomalies in a given data set by searching for elements whose hypothesis value is
         below a certain value epsilon.
 
-        :param X:   The data set in which anomalies are tried to be captured
-        :return:    The indices of the anomalies
+        Args:
+            X (np.matrix):  The data set in which anomalies are tried to be captured
+        
+        Returns: 
+            np.array:       The indices of the anomalies
         """
         p = self.hypothesis(X)
 
@@ -89,9 +98,9 @@ class AnomalyDetector(object):
         Plots/Scatters the data (assumes that the x-axis values are in the first column and the y-axis values are in the
         last column) and visualizes where anomalies were detected.
         
-        :param X:       The input matrix
-        :param scatter: Whether the data should be scattered or plotted
-        :return:        None
+        Args:
+            X (np.matrix):      The input matrix
+            scatter (bool):     Whether the data should be scattered or plotted
         """
         plt.figure(figsize=(13, 5))
 

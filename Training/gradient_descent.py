@@ -14,12 +14,12 @@ class GradientDescentOptimizer(object):
         """
         Trains the parameters in init_theta to minimize the provided cost function.
         
-        :param current_theta:   The current parameter values (if it's a list, gradient descent is applied element-wise)
-        :param X:               The training set
-        :param y:               The training set's corresponding output
-        :param gd_parameters:   The parameters with which gradient descent should be run
-        :param log_handler:     The LogHandler instance which handles all the logging
-        :return:                None
+        Args:
+            current_theta:                              The current parameter values (if it's a list, gradient descent is applied element-wise)
+            X (np.matrix):                              The training set
+            y (np.matrix):                              The training set's corresponding output
+            gd_parameters (GradientDescentParameters):  The parameters with which gradient descent should be run
+            log_handler (LogHandler):                   The LogHandler instance which handles all the logging
         """
         print('\nTraining Parameters...')
 
@@ -94,9 +94,12 @@ class GradientDescentOptimizer(object):
         """
         Calculates the change that needs to be applied to the weights in order to step towards a better model.
         
-        :param alpha:       The learning rate
-        :param gradients:   The gradients
-        :return:            The values by which the current weights are changed
+        Args:
+            alpha (float):                      The learning rate
+            gradients (list or np.array_like):  The gradients
+        
+        Returns:
+            list or np.array:                   The values by which the current weights are changed
         """
         if isinstance(gradients, list):
             for i in range(0, len(gradients)):
@@ -122,15 +125,16 @@ class GradientDescentOptimizer(object):
         Numerically calculate the gradients based on the current model and compare them to the given gradients. 
         If they don't match, raise an error.
 
-        :param theta:           Parameter values
-        :param X:               The training set on which the model was trained
-        :param y:               The output corresponding to the training set
-        :param gradients:       The gradients which are to be checked
-        :param gd_parameters:   The gradient descent's settings
-        :param epsilon:         (optional) How accurate the numerical gradient should be (the smaller the better, but beware too small values)
-        :param threshold:       (optional) If the difference between the numerical gradient and the provided gradient is
-                                bigger than the threshold an error will be raised
-        :return:                None
+        Args:
+            theta (np.matrix):                          Parameter values
+            X (np.matrix):                              The training set on which the model was trained
+            y (np.matrix):                              The output corresponding to the training set
+            gradients (list or np.array_like):          The gradients which are to be checked
+            gd_parameters (GradientDescentParameters):  The gradient descent's settings
+            epsilon (float):                            (optional) How accurate the numerical gradient should be 
+                                                        (the smaller the better, but beware too small values)
+            threshold (float):                          (optional) If the difference between the numerical gradient and the
+                                                        provided gradient is bigger than the threshold an error will be raised
         """
 
         cost_func = gd_parameters.cost_func

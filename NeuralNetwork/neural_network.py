@@ -8,17 +8,17 @@ from parameters import GradientDescentParameters
 
 
 class NeuralNetwork(object):
+
     def __init__(self, input_units=5, EPSILON=0.12, name: str = None):
         print('Neural Network has', input_units, 'input units.')
         self.id = uuid.uuid4().hex
         self.name = name or 'Unnamed Neural Net'
         self.input_units = input_units
+        # whether or not we already have an output layer
         self.has_output = False
         self.model = {'weights': [], 'layers': []}
-
         # create the input layer
         self.model['layers'].append(NeuralLayer(input_units))
-
         # EPSILON is used to initialize the random weights matrix
         self.EPSILON = EPSILON
 
@@ -29,35 +29,33 @@ class NeuralNetwork(object):
         Adds a new hidden layer to the network. If there exists an output already, the new hidden layer is inserted
         between the current last hidden layer and the output.
         
-        :param units:   The number of hidden units contained in this hidden layer
-        :return:        None
+        Args:
+            units (int):   The number of hidden units contained in this hidden layer
         """
         # create new layer
         layer = NeuralLayer(units, True)
+        num_weights = len(self.model['weights'])
+        num_layers = len(self.model['layers'])
 
         if not self.has_output:
             # get preceding layer
-            prev_layer = self.model['layers'][len(self.model['layers']) - 1]
+            prev_layer = self.model['layers'][num_layers - 1]
             # create random weights matrix
             weight = np.random.rand(units, prev_layer.units + (prev_layer.has_bias * 1)) * (2 * self.EPSILON) - self.EPSILON
-
             self.model['layers'].append(layer)
             self.model['weights'].append(weight)
         else:
             # get preceding layer
-            prev_layer = self.model['layers'][len(self.model['layers']) - 2]
+            prev_layer = self.model['layers'][num_layers - 2]
             # create random weights matrix
             weight = np.random.rand(units, prev_layer.units + (prev_layer.has_bias * 1)) * (2 * self.EPSILON) - self.EPSILON
-
             # insert the new layer in the second last position (last position is the output layer)
-            self.model['layers'].insert(len(self.model['layers'])-1, layer)
+            self.model['layers'].insert(num_layers-1, layer)
             # insert the new weight in the second last position
-            self.model['weights'].insert(len(self.model['weights'])-1, weight)
-
-            output_layer = self.model['layers'][len(self.model['layers'])-1]
-
+            self.model['weights'].insert(num_weights-1, weight)
+            output_layer = self.model['layers'][num_layers-1]
             # fix the last weight matrix (dimension could be wrong if we insert a layer before the end)
-            self.model['weights'][len(self.model['weights'])-1] = np.random.rand(output_layer.units, units + 1) * (2*self.EPSILON) - self.EPSILON
+            self.model['weights'][num_weights-1] = np.random.rand(output_layer.units, units + 1) * (2*self.EPSILON) - self.EPSILON
 
         print('Added a new layer with ', units, ' units.')
 
@@ -67,52 +65,53 @@ class NeuralNetwork(object):
         one. Any new hidden layers added to the network after an output layer was added will be inserted between the
         last hidden layer and the output layer.
         
-        :param units:   The number of output units contained in this output layer
-        :return:        None
+        Args:
+            units (int): The number of output units contained in this output layer
         """
         # create new layer
         layer = NeuralLayer(units, False)
+        num_layers = len(self.model['layers'])
+        num_weights = len(self.model['weights'])
 
         if not self.has_output:
             # get previous layer
-            prev_layer = self.model['layers'][len(self.model['layers']) - 1]
+            prev_layer = self.model['layers'][num_layers - 1]
             # create random weights matrix
             weight = np.random.rand(units, prev_layer.units + (prev_layer.has_bias * 1)) * (2 * self.EPSILON) - self.EPSILON
             self.has_output = True
             self.model['layers'].append(layer)
             self.model['weights'].append(weight)
-
             print('Added a new output layer with ', units, ' units.')
         else:
             # get last hidden layer
-            prev_layer = self.model['layers'][len(self.model['layers']) - 2]
+            prev_layer = self.model['layers'][num_layers-2]
             # create random weights matrix
             weight = np.random.rand(units, prev_layer.units + (prev_layer.has_bias * 1)) * (2 * self.EPSILON) - self.EPSILON
             # override existing values
-            self.model['layers'][len(self.model['layers'])-1] = layer
-            self.model['weights'][len(self.model['weights'])-1] = weight
-
+            self.model['layers'][num_layers-1] = layer
+            self.model['weights'][num_weights-1] = weight
             print('Output layer overridden with ', units, ' units.')
 
     # ======== Gradient Descent Functions ========
 
-    def cost_function(self, weights: list, X: np.matrix, y: np.matrix, reg_lambda=1., feed_values: np.array = None):
+    def cost_function(self, weights: list, X: np.matrix, y: np.matrix, reg_lambda: float = 1.0, feed_values: np.array = None):
         """
         Evaluates the cost of the given weights based on a given training set X with output y. Optionally feed forward
         values can be passed on so that this method doesn't feed forward the training set again.
         
-        :param weights:     the weights with which we compute the feed forward values
-        :param X:           input on which the model is/was being trained
-        :param y:           output corresponding to the input on which the model is/was being trained
-        :param reg_lambda:  (optional) regularization term for the weights of the network. Default: 1
-        :param feed_values: (optional) calculate the cost for the given feed_forward values
-        :return:            cost of the model
+        Args:
+            weights (list):             the weights with which we compute the feed forward values
+            X (np.matrix):              input on which the model is/was being trained
+            y (np.matrix):              output corresponding to the input on which the model is/was being trained
+            reg_lambda (float):         (optional) regularization term for the weights of the network. Default: 1
+            feed_values (np.array):     (optional) calculate the cost for the given feed_forward values
+            
+        Returns: 
+            float:                      cost of the model
         """
         layers = self.model['layers']
-
-        m, n = X.shape
-
         L = len(layers)
+        m, n = X.shape
 
         if feed_values is None:
             output = self.feed_forward(X)[L-1]
@@ -141,19 +140,21 @@ class NeuralNetwork(object):
 
         return J
 
-    def gradient(self, weights: list, X: np.matrix, y: np.matrix, reg_lambda=1., feed_values: np.array = None):
+    def gradient(self, weights: list, X: np.matrix, y: np.matrix, reg_lambda: float = 1.0, feed_values: np.array = None):
         """
         Computes the gradients of the provided weight matrices.
 
-        :param weights:     the weights whose gradient values will be calculated
-        :param X:           The training set with which the network is trained
-        :param y:           The training set's output
-        :param reg_lambda:  (optional) Regularization term for the weights. Default: 1
-        :param feed_values: (optional) calculate the cost for the given feed_forward values
-        :return:            gradients of the weights
+        Args:
+            weights (list):             the weights whose gradient values will be calculated
+            X (np.matrix):              The training set with which the network is trained
+            y (np.matrix):              The training set's output
+            reg_lambda (float):         (optional) Regularization term for the weights. Default: 1
+            feed_values (np.array):     (optional) calculate the cost for the given feed_forward values
+        
+        Returns:
+            list of np.array:   gradients of the weights
         """
         layers = self.model['layers']
-
         m, n = X.shape
 
         W = len(weights)
@@ -192,17 +193,16 @@ class NeuralNetwork(object):
         Trains the network with gradient descent with the given training set and the corresponding output and
         applies the trained model to the network.
         
-        :param X:           The training set with which the network is trained
-        :param y:           The training set's output
-        :param Optimizer:   The Optimizer to be used to optimize the cost function
-        :param gd_params:   The parameters to be used for the training
-        :param log_handler: The log handler object which handles the logging during the training
-        :return:            None
+        Args:
+            X (np.matrix):                          The training set with which the network is trained
+            y (np.matrix):                          The training set's output
+            Optimizer (callable):                   The Optimizer to be used to optimize the cost function
+            gd_params (GradientDescentParameters):  The parameters to be used for the training
+            log_handler (LogHandler):               The log handler object which handles the logging during the training
         """
         weights, layers = self.get_model()
 
         gd_params = gd_params or GradientDescentParameters()
-
         gd_params.cost_func = self.cost_function
         gd_params.gradient_func = self.gradient
 
@@ -237,18 +237,20 @@ class NeuralNetwork(object):
         Takes an input set X and optionally a list of weights, feeds the input forward and
         returns the activation values for every layer.
         
-        :param X:       The input set which is fed forward
-        :param weights: (optional) Weights which should be used for the forward propagation. Default: Current model's weights
-        :return:        The activation values for every unit in every layer
+        Args:
+            X (np.matrix):      The input set which is fed forward
+            weights (list):     (optional) Weights which should be used for the forward propagation. Default: Current model's weights
+        
+        Returns:
+            list of np.array:  The activation values for every unit in every layer
         """
         m, n = X.shape
+        activations = [X]
 
         if weights is None:
             weights, layers = self.get_model()
         else:
             layers = self.model['layers']
-
-        activations = [X]
 
         for i in range(0, len(layers)-1):
             X = np.hstack((np.ones((m, 1)), X))
@@ -263,10 +265,12 @@ class NeuralNetwork(object):
         output unit with a value greater than the threshold will output 1 and all else 0. If no threshold is specified
         then the output unit with the greatest value will output 1 and all other units will output 0.
         
-        :param X:           The input set
-        :param threshold:   (optional) The threshold which determines if a output unit outputs a 1 or 0. If the 
-                            threshold is 0 then only the output unit with the greatest value will output 1.
-        :return:            the prediction
+        Args:
+            X (np.matrix):      The input set
+            threshold (float):  (optional) The threshold which determines if a output unit outputs a 1 or 0. If the 
+                                threshold is 0 then only the output unit with the greatest value will output 1.
+        Returns:
+            np.array:           the matrix containing all the predictions
         """
         weights, layers = self.get_model()
 
@@ -281,22 +285,23 @@ class NeuralNetwork(object):
                 # only convert the output with the greatest value to 1 and all else to 0
                 idx = np.where(output[i] == max(output[i]))
 
+            # fill output row with zeros
             output[i] = np.zeros_like(output[i])
+            # predict true for each class in idx
             output[i][idx] = 1
+
         return output
 
     # ======== Util Functions ========
 
     def get_model(self):
         """
-        Returns the current model's weights and layers
+        Provides the current model's weights and layers
         
-        :return: The model's weights and layers
+        Returns:
+            list, list: The model's weights and layers
         """
-        weights = self.model['weights']
-        layers = self.model['layers']
-
-        return weights, layers
+        return self.model['weights'], self.model['layers']
 
     def get_mean_correct(self, X, y, threshold=0.0):
         num_right = 0
@@ -330,8 +335,10 @@ class NeuralLayer(object):
         """
         The activation function. Takes an input z (can be a scalar, vector or matrix) and outputs a value based on the input.
 
-        :param z:   The input value
-        :return:    A value (or vector/matrix of values)
+        Args:
+            z:          The input value
+        Returns: 
+            np.array:   The activation of the value (or vector/matrix of values)
         """
         if type(z).__module__ == np.__name__:
             return self.activator(z)
@@ -343,8 +350,10 @@ class NeuralLayer(object):
         The activation function's derivative function. Takes an input z (can be a scalar, vector or matrix) and outputs
         the function's gradient value for that input.
 
-        :param z:   The input value
-        :return:    The activation function's gradient for that input z
+        Args:
+            z:          The input value
+        Returns:
+            np.array:   The activation function's gradient for that input z
         """
         if type(z).__module__ == np.__name__:
             # np.clip is used to prevent overflowing

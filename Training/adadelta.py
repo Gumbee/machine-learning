@@ -20,9 +20,12 @@ class AdaDeltaOptimizer(GradientDescentOptimizer):
         """
         Computes the delta values by which the parameters will be changed in order to optimize the parameters values.
         
-        :param alpha:       The learning rate
-        :param gradients:   The gradients
-        :return:            The delta values by which the parameters should be subtracted
+        Args:
+            alpha (float):                          The learning rate
+            gradients (list or np.array_like):      The gradients
+        
+        Returns:            
+            list or np.array:                       The delta values by which the parameters should be subtracted
         """
         # get the root mean of the accumulated delta values
         dlt = self.delta_accu.get_rm()
@@ -42,7 +45,8 @@ class AdaDeltaOptimizer(GradientDescentOptimizer):
         """
         Accumulates the gradients.
         
-        :param gradients: The gradient values
+        Args:
+            gradients (list or np.array_like): The gradient values
         """
         # accumulate the gradients
         self.grd_accu.add(gradients)
@@ -51,7 +55,8 @@ class AdaDeltaOptimizer(GradientDescentOptimizer):
         """
         Accumulates the delta changes applied in the latest iteration.
         
-        :param delta: The value by which the parameters were changed.
+        Args:
+            delta (list or np.array_like): The value by which the parameters were changed.
         """
         # accumulate the delta change
         self.delta_accu.add(delta)
@@ -60,7 +65,8 @@ class AdaDeltaOptimizer(GradientDescentOptimizer):
         """
         Prepares the accumulator variables.
         
-        :param init_theta: The weights whose shape will be matched by the accumulators
+        Args:
+            init_theta (list or np.array_like): The weights whose shape will be matched by the accumulators
         """
         # fill accumulators with zero values
         self.grd_accu.fill_zero(init_theta)

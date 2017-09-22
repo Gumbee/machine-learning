@@ -7,9 +7,10 @@ class Accumulator(object):
         """
         Initializes the accumulator.
         
-        :param decay:       The decaying rate
-        :param squared:     Whether or not to square the values when adding them to the accumulator
-        :param epsilon:     A small epsilon to avoid zero values
+        Args:
+            decay (float):      The decaying rate
+            squared (bool):     Whether or not to square the values when adding them to the accumulator
+            epsilon (float):    A small epsilon to avoid zero values
         """
         self.decay = decay
         self.squared = squared
@@ -20,7 +21,8 @@ class Accumulator(object):
         """
         Add a new value (or list of values) to the accumulator. (Accumulate a new value)
         
-        :param value: The value that is accumulated
+        Args:
+            value (list or np.array_like):  The value that is accumulated
         """
         if self.squared:
             if isinstance(value, list):
@@ -38,7 +40,8 @@ class Accumulator(object):
         """
         Get the root mean value.
         
-        :return: The root value of the accumulator
+        Returns:
+             list or np.array:  The root value of the accumulator
         """
         if isinstance(self.value, list):
             return [np.sqrt(x+self.epsilon) for x in self.value]
@@ -49,7 +52,8 @@ class Accumulator(object):
         """
         Get the value of the accumulator (for the root value, use get_rm).
         
-        :return: The value of the accumulator
+        Returns:
+             list or np.array:  The value of the accumulator
         """
         return self.value
 
@@ -57,8 +61,8 @@ class Accumulator(object):
         """
         Fills the accumulator with zero values, based on the shape of the given weights.
         
-        :param weights: The weights
-        :return: 
+        Args:
+            weights (list or np.array_like): The weights
         """
         if self.value is None:
             # if we have a list of weights, allocate a list of zeros for the accumulator

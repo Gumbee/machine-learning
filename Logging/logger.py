@@ -30,13 +30,14 @@ class LogHandler(object):
         """
         Logs a step of the gradient descent algorithm.
         
-        :param session_id:      current session's number
-        :param epoch_num:       current epoch number
-        :param batch_num:       current batch number
-        :param current_theta:   current weights
-        :param X:               the data set on which the model is being trained
-        :param y:               the data set's expected output
-        :param gd_parameters:   the parameters with which the gradient descent algorithm is applied
+        Args:
+            session_id (str):                           current session's id
+            epoch_num (int):                            current epoch number
+            batch_num (int):                            current batch number
+            current_theta (np.matrix):                  current weights
+            X (np.matrix):                              the data set on which the model is being trained
+            y (np.matrix):                              the data set's expected output
+            gd_parameters (GradientDescentParameters):  the parameters with which the gradient descent algorithm is applied
         """
         # get relevant gradient descent parameters
         cost_func = gd_parameters.cost_func
@@ -85,8 +86,8 @@ class LogHandler(object):
         Lets the model predict the output for each data set that is being monitored and compares the predictions
         to the actual expected output. The accuracy per data set is then added to the log.
         
-        :param session_id: 
-        :return: 
+        Args:
+            session_id (str):     current session's id
         """
         # only monitor the accuracy if a mean to calculate the accuracy is provided and we want to log the progress
         if self.gd_log_parameters.accuracy_func is None or not self.gd_log_parameters.log_progress:
@@ -115,8 +116,11 @@ class LogHandler(object):
         """
         Opens a logging sessions for the gradient descent algorithm (or any extension of it).
         
-        :param initial_error:   the current error (loss)
-        :return:                the new session's id
+        Args:
+            initial_error (float):  the current error (loss)
+            
+        Returns:                
+            str:                    the new session's id
         """
         # only print the table if we want to log the progress
         if self.gd_log_parameters.log_progress:
@@ -169,10 +173,11 @@ class LogHandler(object):
         """
         Adds a gradient descent step entry to the log.
         
-        :param session_id:  The session id of the session to which we add the entry
-        :param epoch_num:   The current epoch's number
-        :param cost:        The cost (loss) which we add to the entry
-        :param rel_chng:    The relative change of the cost compared to the last entry
+        Args:
+            session_id (str):   The session id of the session to which we add the entry
+            epoch_num (int):    The current epoch's number
+            cost (float):       The cost (loss) which we add to the entry
+            rel_chng (float):   The relative change of the cost compared to the last entry
         """
         # update the entry number
         self.log_dict['training_sessions'][session_id]['entry_num'] += 1
@@ -188,9 +193,10 @@ class LogHandler(object):
         """
         Adds a data set (which can then be visualized on the board) to the log.
         
-        :param X:           The data set
-        :param classes:     The classes corresponding to the data set (the output values corresponding to the data set)
-        :param subset_size: If specified only a subset of the data set will be added to the log 
+        Args:
+            X (np.matrix):          The data set
+            classes (np.array):     The classes corresponding to the data set (the output values corresponding to the data set)
+            subset_size (int):      If specified only a subset of the data set will be added to the log 
         """
         # if we haven't calculated any eigenvectors yet, we use the first added data set to calculate
         # the eigenvectors (used to project the data onto fewer dimensions)
@@ -243,7 +249,8 @@ class LogHandler(object):
         """
         Registers a neural network to the log.
         
-        :param network: The network
+        Args:
+            network:    The network
         """
         self.log_dict['network_info'] = {}
         self.log_dict['network_info']['id'] = network.id
@@ -276,41 +283,46 @@ class LogHandler(object):
         """
         Helper method to extract information from a NeuralLayer and save it in a dictionary.
 
-        :param layer:   the layer whose information is to be extracted
-        :return:        a dictionary containing the relevant information about the layer
+        Args:
+            layer:      the layer whose information is to be extracted
+            
+        Returns:
+            dict:       a dictionary containing the relevant information about the layer
         """
         return {'units': layer.units, 'has_bias': layer.has_bias, 'activation': layer.activation_name}
 
     @staticmethod
-    def print_table_header(First: str, Second: str, Third: str, Fourth: str, Fifth: str):
+    def print_table_header(first: str, second: str, third: str, fourth: str, fifth: str):
         """
         Prints a table header with the specified values.
         
-        :param First:   First value that in the header
-        :param Second:  Second value that in the header
-        :param Third:   Third value that in the header
-        :param Fourth:  Fourth value that in the header
-        :param Fifth:   Fifth value that in the header
+        Args:
+            first (str):    first value that in the header
+            second (str):   second value that in the header
+            third (str):    third value that in the header
+            fourth (str):   fourth value that in the header
+            fifth (str):    fifth value that in the header
         """
-        print('\n\033[91m', '{:>4s}'.format(str(First)), '{:>1s}'.format('|'), '{:>5s}'.format(str(Second)),
+        print('\n\033[91m', '{:>4s}'.format(str(first)), '{:>1s}'.format('|'), '{:>5s}'.format(str(second)),
               '{:>1s}'.format('|'),
-              '{:>15s}'.format(str(Third)), '{:>1s}'.format('|'), '{:>15s}'.format(str(Fourth)),
+              '{:>15s}'.format(str(third)), '{:>1s}'.format('|'), '{:>15s}'.format(str(fourth)),
               '{:>1s}'.format('|'),
-              '{:>10s}'.format(str(Fifth)), '{:>1s}'.format('|'), '\033[0m')
+              '{:>10s}'.format(str(fifth)), '{:>1s}'.format('|'), '\033[0m')
         print('\033[91m', '{:─>63s}'.format(''), '\033[0m')
 
     @staticmethod
-    def print_table_entry(First: int, Second: int, Third: float, Fourth: float, Fifth: float):
+    def print_table_entry(first: int, second: int, third: float, fourth: float, fifth: float):
         """
         Prints a table entry with the specified values.
         
-        :param First:   First value that in the header
-        :param Second:  Second value that in the header
-        :param Third:   Third value that in the header
-        :param Fourth:  Fourth value that in the header
-        :param Fifth:   Fifth value that in the header
+        Args:
+            first (int):        first value that in the header
+            second (int):       second value that in the header
+            third (float):      third value that in the header
+            fourth (float):     fourth value that in the header
+            fifth (float):      fifth value that in the header
         """
-        print('\033[91m', '{:>4d}'.format(First), '{:1s}'.format('|'), '{:>5d}'.format(Second),
+        print('\033[91m', '{:>4d}'.format(first), '{:1s}'.format('|'), '{:>5d}'.format(second),
               '{:>1s}'.format('|'),
-              '{:>15.6e}'.format(Third), '{:>1s}'.format('|'), '{:>15.6e}'.format(Fourth), '{:>1s}'.format('|'),
-              '{:>10.3f}'.format(Fifth), '{:>1s}'.format('|'), '\033[0m')
+              '{:>15.6e}'.format(third), '{:>1s}'.format('|'), '{:>15.6e}'.format(fourth), '{:>1s}'.format('|'),
+              '{:>10.3f}'.format(fifth), '{:>1s}'.format('|'), '\033[0m')
