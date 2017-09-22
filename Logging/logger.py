@@ -243,6 +243,16 @@ class LogHandler(object):
         self.log_dict['input_data'].append({'x': x, 'y': y, 'z': z, 'c': c})
 
     def add_accuracy_monitor(self, X, y, subset_size=-1, name=''):
+        """
+        Adds a data set over which the model's performance is regularly measured (and can then be visualized on the
+        board).
+        
+        Args:
+            X:              The input data
+            y:              The expected output data
+            subset_size:    If specified only a subset of this size is used to evaluate the performance
+            name:           Name of the data set (for visualization purposes)
+        """
         self.gd_log_parameters.add_accuracy_monitor(X, y, subset_size, name)
 
     def register_network(self, network):

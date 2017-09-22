@@ -161,10 +161,7 @@ class NeuralNetwork(object):
         L = len(layers)
 
         # check if the feed forward values are already provided or if we have to calculate them
-        if feed_values is None:
-            activations = self.feed_forward(X)
-        else:
-            activations = feed_values
+        activations = self.feed_forward(X) if feed_values is None else feed_values
 
         # allocate space
         deltas = [None] * L
@@ -247,10 +244,7 @@ class NeuralNetwork(object):
         m, n = X.shape
         activations = [X]
 
-        if weights is None:
-            weights, layers = self.get_model()
-        else:
-            layers = self.model['layers']
+        weights, layers = self.get_model() if weights is None else (weights, self.model['layers'])
 
         for i in range(0, len(layers)-1):
             X = np.hstack((np.ones((m, 1)), X))

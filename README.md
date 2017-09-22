@@ -12,7 +12,7 @@
 
 ## Quick guide
 
-The following guide steps you through the process of creating a neural network and visualizing the performance and data. The network will be trained to recognize digits (10 classes, 0-9) using the MNIST data set. For a more detailed guide (also on how to visualize the data, performance etc.) take a look at the NotSoQuickGuide.
+The following guide steps you through the process of creating a neural network and visualizing the performance and data. The network will be trained to recognize digits (10 classes, 0-9) using the MNIST data set. For a more detailed guide (also on how to visualize the data, performance etc.) take a look at the [NotSoQuickGuide](https://github.com/Gumbee/machine-learning/blob/master/NotSoQuickGuide.md).
 
 ```Python
 import Data.data_manager as DataManager

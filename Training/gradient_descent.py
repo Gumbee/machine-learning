@@ -1,6 +1,5 @@
 import numpy as np
 
-from Logging.logger import GDLoggingParameters as GDLoggingParameters
 from Logging.logger import LogHandler as LogHandler
 from parameters import GradientDescentParameters as GradientDescentParameters
 
@@ -56,16 +55,12 @@ class GradientDescentOptimizer(object):
             for x in range(0, m, batch_size):
                 # determine at which index the current batch ends
                 end = min(x+batch_size, m-1)
-
                 # calculate gradients
                 gradients = gradient_func(current_theta, X[idx[x:end], :], y[idx[x:end], :], reg_lambda, **func_args)
-
                 # perform pre-update calculations if necessary
                 self.pre_update(gradients)
-
                 # get the values by which we change our parameters
                 delta = self.delta(alpha, gradients)
-
                 # update weights with our delta values
                 # if init_theta is a list, then we apply gradient descent for each item in the list (e.g Neural Networks)
                 if isinstance(current_theta, list):
@@ -76,7 +71,6 @@ class GradientDescentOptimizer(object):
 
                 # perform post-update calculations if necessary
                 self.post_update(delta)
-
                 # log the progress
                 log_handler.log_gd_progress(session_id, epoch_num=i, batch_num=x, current_theta=current_theta, X=X, y=y, gd_parameters=gd_parameters)
 
