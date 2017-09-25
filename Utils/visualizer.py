@@ -56,18 +56,21 @@ def visualize_image(X: np.matrix, y: np.matrix = None, size: int = 20, transpose
     plt.ioff()
 
 
-def visualize_training_step(theta, X, iteration, **kwargs):
+def visualize_training_step(iteration, **kwargs):
     """
     Visualizes what an iteration (or possibly multiple iterations if step > 1) of the gradient descent algorithm do
     in terms of improving the fit of the hypothesis to the data.
     
     Args:
-        theta:       The current parameters
-        X:           The training set
         iteration:   The current iteration of the gradient descent algorithm
         kwargs:      Additional settings: 'step' -> after how many steps the plot should be updated
     """
     step = kwargs['step'] if 'step' in kwargs else 1
+    theta = kwargs['theta'] if 'theta' in kwargs else None
+    X = kwargs['X'] if 'X' in kwargs else None
+
+    if theta is None or X is None:
+        raise Exception('Theta or X were not passed on to the callback function! Check your gd_params.callback_args')
 
     if iteration % step == step-1:
         plt.plot(np.ravel(X[0:, 0].T), X.dot(theta.T), color='red', linewidth=0.5)

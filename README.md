@@ -1,4 +1,7 @@
 # Machine Learning Framework
+
+This is a small python machine learning framework desinged to make using Neural Networks and other machine learning systems as easy as possible for the user.
+
 ## Getting started
 
 #### Installation

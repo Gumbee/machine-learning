@@ -75,7 +75,7 @@ class GradientDescentOptimizer(object):
                 log_handler.log_gd_progress(session_id, epoch_num=i, batch_num=x, current_theta=current_theta, X=X, y=y, gd_parameters=gd_parameters)
 
                 if callback is not None:
-                    callback(current_theta, X, i, **callback_args)
+                    callback(i, **callback_args)
 
         # print the old error and the new one
         print('\033[91m', '\n{:<15s}'.format('Initial Error:'), '{:5.6e}'.format(initial_error), '\n{:<15s}'.format('New Error:'),

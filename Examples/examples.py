@@ -45,7 +45,6 @@ def neural_net_test(Optimizer: callable(GradientDescentOptimizer), batch_size: i
     # train the network and output the duration it took to train the net
     t = time.time()
     network.train(X, y, Optimizer, gd_params, log_handler)
-    network.train(X, y, Optimizer, gd_params, log_handler)
     t = time.time()-t
     print("\nProcess finished in", '{:6.3f}'.format(t), 'seconds\n')
 
@@ -156,7 +155,7 @@ def linear_regression_test(Optimizer: callable(GradientDescentOptimizer) = Gradi
     gd_parameters.cost_func = cost_model.sum_of_squares
     gd_parameters.gradient_func = cost_model.sum_of_squares_gradient
     gd_parameters.callback = Visualizer.visualize_training_step
-    gd_parameters.callback_args = {'step': 1}
+    gd_parameters.callback_args = {'step': 5, 'theta': init_theta, 'X': X}
 
     # train
     optimizer.train(init_theta, X, y, gd_parameters)
