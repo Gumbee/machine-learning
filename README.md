@@ -8,9 +8,19 @@ This is a small python machine learning framework desinged to make using Neural 
 
 1. Fork the project
 2. Make sure you've installed following dependencies:
+    - Python 3
     - NumPy
+    ```
+    sudo pip install numpy
+    ```
     - Flask
+    ```
+    sudo pip install Flask
+    ```
     - Matplotlib
+    ```
+    sudo pip install matplotlib
+    ```
 3. Done.
 
 ## Quick guide
